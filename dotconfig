@@ -1,0 +1,30 @@
+#!php
+<?php
+
+$home = $_SERVER["HOME"];
+
+$sublimeConfigPath = createPath([$home, "Library", "Application Support", "Sublime Text", "Packages"]);
+$sublimeConfigPathActual = createPath([$sublimeConfigPath, "User"]);
+$sublimeConfigHere = createPath([__DIR__, "SublimeConfigs"]);
+
+if (!is_link($sublimeConfigHere)) {
+	info("Backing up the current config...");
+	rename($sublimeConfigPathActual, createPath([$sublimeConfigPath, 'UserBkp']));
+	info("Importing the sublime config...");
+	rename($sublimeConfigHere, $sublimeConfigPathActual);
+
+	symlink($sublimeConfigPathActual, $sublimeConfigHere);
+	info("Sublime config linked.");
+} else {
+	info("Skipping sublime config...");
+}
+
+function createPath(array $paths): string
+{
+	return implode(DIRECTORY_SEPARATOR, $paths);
+}
+
+function info(string $message): void
+{
+	echo "INFO: $message" . PHP_EOL;
+}
