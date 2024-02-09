@@ -1,0 +1,16 @@
+{
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"gruvbox",
+		"LSP",
+		"LSP-gopls",
+		"LSP-intelephense",
+		"LSP-json",
+		"LSP-typescript",
+		"Package Control",
+	],
+}

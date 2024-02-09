@@ -1,0 +1,22 @@
+{
+	"color_scheme": "gruvbox (Dark) (Hard).sublime-color-scheme",
+	"ignored_packages": [
+	], // Enable the Vintage package, vim emulation
+	// Vintage settings
+	"vintage_use_clipboard": true,
+	"vintage_start_in_command_mode": true,
+	"relative_line_numbers": true,
+	"goto_anything_exclude_gitignore": true,
+	"index_exclude_gitignore": false,
+	"index_files": false,
+	"font_size": 15,
+	"hardware_acceleration": "none", // Maybe it is good?
+	"show_encoding": true,
+	"hide_new_tab_button": true,
+	"hide_tab_scrolling_buttons": true,
+	"theme": "Adaptive.sublime-theme",
+	"highlight_line": true,
+	"shift_tab_unindent": true,
+	"caret_style": "solid",
+	"block_caret": true,
+}

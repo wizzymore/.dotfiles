@@ -5,15 +5,12 @@ $home = $_SERVER["HOME"];
 
 $sublimeConfigPath = createPath([$home, "Library", "Application Support", "Sublime Text", "Packages"]);
 $sublimeConfigPathActual = createPath([$sublimeConfigPath, "User"]);
-$sublimeConfigHere = createPath([__DIR__, "SublimeConfigs"]);
+$sublimeConfigHere = createPath([__DIR__, "User"]);
 
-if (!is_link($sublimeConfigHere)) {
+if (!is_link($sublimeConfigPathActual)) {
 	info("Backing up the current config...");
-	rename($sublimeConfigPathActual, createPath([$sublimeConfigPath, 'UserBkp']));
-	info("Importing the sublime config...");
-	rename($sublimeConfigHere, $sublimeConfigPathActual);
-
-	symlink($sublimeConfigPathActual, $sublimeConfigHere);
+	rename($sublimeConfigPathActual, $sublimeConfigPathActual . 'Bkp');
+	exec("ln -s \"$sublimeConfigHere\" \"$sublimeConfigPathActual\"");
 	info("Sublime config linked.");
 } else {
 	info("Skipping sublime config...");
