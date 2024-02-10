@@ -5,15 +5,28 @@ $home = $_SERVER["HOME"];
 
 $sublimeConfigPath = createPath([$home, "Library", "Application Support", "Sublime Text", "Packages"]);
 $sublimeConfigPathActual = createPath([$sublimeConfigPath, "User"]);
-$sublimeConfigHere = createPath([__DIR__, "User"]);
+$sublimeConfigHere = createPath([__DIR__, "Sublime", "User"]);
+
+$sublimePackagesPath = createPath([$home, "Library", "Application Support", "Sublime Text"]);
+$sublimePackagesPathActual = createPath([$sublimePackagesPath, "Installed Packages"]);
+$sublimePackagesHere = createPath([__DIR__, "Sublime", "Installed Packages"]);
 
 if (!is_link($sublimeConfigPathActual)) {
 	info("Backing up the current config...");
-	rename($sublimeConfigPathActual, $sublimeConfigPathActual . 'Bkp');
+	rename($sublimeConfigPathActual, createPath([$sublimeConfigPath, '.user_bkp']));
 	exec("ln -s \"$sublimeConfigHere\" \"$sublimeConfigPathActual\"");
 	info("Sublime config linked.");
 } else {
 	info("Skipping sublime config...");
+}
+
+if (!is_link($sublimePackagesPathActual)) {
+	info("Backing up the current packages...");
+	rename($sublimePackagesPathActual, createPath([$sublimePackagesPath, 'installed_packages_bkp']));
+	exec("ln -s \"$sublimePackagesHere\" \"$sublimePackagesPathActual\"");
+	info("Sublime packages linked.");
+} else {
+	info("Skipping sublime packages...");
 }
 
 function createPath(array $paths): string
