@@ -58,4 +58,11 @@
 			}
 		]
 	},
+	// Open terminal
+	{
+		"keys": [
+			"super+t"
+		],
+		"command": "open_terminal_project_folder",
+	}
 ]
