@@ -3,6 +3,7 @@
 	"in_process_packages": [
 	],
 	"installed_packages": [
+		"FileIcons",
 		"gruvbox",
 		"INI",
 		"LSP",
@@ -12,5 +13,6 @@
 		"LSP-typescript",
 		"Package Control",
 		"Terminal",
+		"Visual Studio Dark",
 	],
 }

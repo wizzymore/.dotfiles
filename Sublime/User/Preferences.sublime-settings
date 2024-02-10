@@ -1,5 +1,5 @@
 {
-	"color_scheme": "gruvbox (Dark) (Hard).sublime-color-scheme",
+	"color_scheme": "Packages/Visual Studio Dark/Visual Studio Dark.tmTheme",
 	"ignored_packages": [
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
