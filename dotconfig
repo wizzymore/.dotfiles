@@ -5,5 +5,17 @@ require_once 'dotconfig_setup.php';
 
 $home = $_SERVER["HOME"];
 
+// Sublime
 dotLink("Sublime/User", "{$home}/Library/Application Support/Sublime Text/Packages/User");
 dotLink("Sublime/Installed Packages", "{$home}/Library/Application Support/Sublime Text/Installed Packages");
+
+// ZSHRC
+dotLink("ZSH/.zshrc", "{$home}/.zshrc");
+
+// Oh My ZSH
+
+if (!is_dir(createPath("{$home}/.oh-my-zsh"))) {
+	exec('KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"');
+} else {
+	info("Oh My ZSH already installed");
+}
