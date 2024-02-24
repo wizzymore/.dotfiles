@@ -14,7 +14,7 @@
 	"show_encoding": true,
 	"hide_new_tab_button": true,
 	"hide_tab_scrolling_buttons": true,
-	"theme": "Adaptive.sublime-theme",
+	"theme": "Default Dark.sublime-theme",
 	"highlight_line": true,
 	"shift_tab_unindent": true,
 	"caret_style": "solid",

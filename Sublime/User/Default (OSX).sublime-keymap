@@ -63,6 +63,6 @@
 		"keys": [
 			"super+t"
 		],
-		"command": "open_terminal_project_folder",
+		"command": "toggle_terminus_panel",
 	}
 ]
