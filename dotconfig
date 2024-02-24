@@ -18,3 +18,9 @@ if (!is_dir(createPath("{$home}/.oh-my-zsh"))) {
 } else {
 	info("Oh My ZSH already installed");
 }
+
+// Kitty
+dotLink("kitty", "{$home}/.config/kitty");
+
+// NVIM
+dotLink("nvim", "{$home}/.config/nvim");
