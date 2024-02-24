@@ -13,7 +13,6 @@ dotLink("Sublime/Installed Packages", "{$home}/Library/Application Support/Subli
 dotLink("ZSH/.zshrc", "{$home}/.zshrc");
 
 // Oh My ZSH
-
 if (!is_dir(createPath("{$home}/.oh-my-zsh"))) {
 	exec('KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"');
 } else {
