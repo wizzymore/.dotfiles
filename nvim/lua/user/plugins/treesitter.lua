@@ -1,22 +1,9 @@
 return {
   'nvim-treesitter/nvim-treesitter',
   event = 'VeryLazy',
-  build = function()
-    require('nvim-treesitter.install').update({ with_sync = true })
-  end,
+  build = ":TSUpdate",
   dependencies = {
-    { 'nvim-treesitter/playground', cmd = "TSPlaygroundToggle" },
-    {
-      'JoosepAlviste/nvim-ts-context-commentstring',
-      opts = {
-        custom_calculation = function (node, language_tree)
-          if vim.bo.filetype == 'blade' and language_tree._lang ~= 'javascript' then
-            return '{{-- %s --}}'
-          end
-        end,
-      },
-    },
-    'nvim-treesitter/nvim-treesitter-textobjects',
+    "nvim-treesitter/nvim-treesitter-textobjects",
   },
   main = 'nvim-treesitter.configs',
   opts = {
@@ -64,21 +51,6 @@ return {
     },
     context_commentstring = {
       enable = true,
-    },
-    rainbow = {
-      enable = true,
-    },
-    textobjects = {
-      select = {
-        enable = true,
-        lookahead = true,
-        keymaps = {
-          ['if'] = '@function.inner',
-          ['af'] = '@function.outer',
-          ['ia'] = '@parameter.inner',
-          ['aa'] = '@parameter.outer',
-        },
-      },
     },
   },
   config = function (_, opts)
