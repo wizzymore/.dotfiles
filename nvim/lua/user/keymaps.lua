@@ -4,6 +4,18 @@ vim.g.maplocalleader = ' '
 -- Clear search highlights
 vim.keymap.set('n', '<C-n>', ':nohl<CR>')
 
+-- File explorer
+vim.keymap.set('n', '<leader>e', ':Explore<CR>')
+
+-- Move to next buffer
+vim.keymap.set('n', '<leader>]', ':bn<CR>')
+
+-- Move to the previous buffer
+vim.keymap.set('n', '<leader>[', ':bp<CR>')
+
+-- Close current buffer
+vim.keymap.set('n', '<leader>w', ':bd<CR>')
+
 -- Close all open buffers.
 vim.keymap.set('n', '<leader>Q', ':bufdo bdelete<CR>')
 

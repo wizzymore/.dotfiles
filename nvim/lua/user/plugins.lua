@@ -52,9 +52,6 @@ require("lazy").setup({
     -- Fuzzy finder
     { import = 'user.plugins.telescope' },
 
-    -- File tree sidebar
-    { import = 'user.plugins.neo-tree' },
-
     -- A Status line.
     { import = 'user.plugins.lualine' },
 
@@ -63,9 +60,6 @@ require("lazy").setup({
 
     -- Display indentation lines.
     { import = 'user.plugins.indent-blankline' },
-
-    -- Add a dashboard.
-    { import = 'user.plugins.dashboard-nvim' },
 
     --- Floating terminal.
     { import = 'user.plugins.floaterm' },

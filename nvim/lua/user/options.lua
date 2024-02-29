@@ -1,4 +1,4 @@
-vim.opt.cmdheight = 0
+-- vim.opt.cmdheight = 0
 vim.opt.shiftwidth = 4
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -15,7 +15,7 @@ vim.opt.wrap = false
 vim.opt.breakindent = true -- maintain when wrapping indented lines
 vim.opt.linebreak = true -- wrap at word boundaries
 vim.opt.list = true -- enable the below listchars
-vim.opt.listchars = { tab = '▸ ', trail = '·' }
+-- vim.opt.listchars = { tab = '▸ ', trail = '·' }
 vim.opt.fillchars:append({ eob = ' ' }) -- remove the ~ from the end of buffer
 vim.opt.clipboard = 'unnamedplus' -- Use system clipboard
 vim.opt.mouse = 'a' -- Enable mouse for all modes
@@ -37,4 +37,4 @@ vim.opt.updatetime = 4001
 vim.opt.redrawtime = 10000 -- allow more time for loading syntax on longer files
 vim.opt.exrc = true
 vim.opt.secure = true
-vim.opt.titlestring = '%f // nvim'
+vim.opt.titlestring = '%f %% nvim'
