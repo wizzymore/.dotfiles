@@ -15,7 +15,8 @@
 	// Goto Definition
 	{
 		"keys": [
-			"f12"
+			"g",
+			"d"
 		],
 		"command": "lsp_symbol_definition",
 		"args": {
@@ -26,13 +27,12 @@
 		},
 		"context": [
 			{
+				"key": "setting.command_mode",
+			},
+			{
 				"key": "lsp.session_with_capability",
 				"operand": "definitionProvider"
 			},
-			{
-				"key": "auto_complete_visible",
-				"operand": false
-			}
 		]
 	},
 	// Goto Definition (side-by-side)
