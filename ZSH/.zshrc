@@ -32,3 +32,10 @@ source <(ng completion script)
 
 # Herd injected PHP 8.2 configuration.
 export HERD_PHP_82_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/82/"
+
+# bun completions
+[ -s "/Users/cristianbilu/.bun/_bun" ] && source "/Users/cristianbilu/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
