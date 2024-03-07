@@ -19,6 +19,13 @@ if (!is_dir(createPath("{$home}/.oh-my-zsh"))) {
 	info("Oh My ZSH already installed");
 }
 
+// Bun
+if (!is_dir(createPath("{$home}/.bun"))) {
+	exec('curl -fsSL https://bun.sh/install | bash');
+} else {
+	info("Bun already installed");
+}
+
 // Kitty
 // dotLink("kitty", "{$home}/.config/kitty");
 
