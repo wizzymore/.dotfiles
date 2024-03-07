@@ -6,11 +6,11 @@ plugins=(git laravel)
 
 source $ZSH/oh-my-zsh.sh
 
-# Sublime Text
-export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
-
 export PATH=$PATH:$HOME/go/bin
 
+# Sublime Text
+
+export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
 
 # Herd injected NVM configuration
 export NVM_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/nvm"
@@ -24,6 +24,10 @@ export PATH="/Users/cristianbilu/Library/Application Support/Herd/bin/":$PATH
 
 # Herd injected PHP 8.3 configuration.
 export HERD_PHP_83_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/83/"
+
+
+# Load Angular CLI autocompletion.
+source <(ng completion script)
 
 
 # Herd injected PHP 8.2 configuration.
