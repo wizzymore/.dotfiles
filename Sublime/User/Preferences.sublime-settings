@@ -19,4 +19,8 @@
 	"shift_tab_unindent": true,
 	"caret_style": "solid",
 	"block_caret": true,
+	"draw_white_space": "selection",
+	"trim_trailing_white_space_on_save": "all",
+	"save_on_focus_lost": true,
+	"auto_complete_commit_on_tab": false,
 }

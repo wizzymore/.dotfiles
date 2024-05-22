@@ -26,10 +26,6 @@ export PATH="/Users/cristianbilu/Library/Application Support/Herd/bin/":$PATH
 export HERD_PHP_83_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/83/"
 
 
-# Load Angular CLI autocompletion.
-source <(ng completion script)
-
-
 # Herd injected PHP 8.2 configuration.
 export HERD_PHP_82_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/82/"
 
@@ -39,3 +35,5 @@ export HERD_PHP_82_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+export PATH="/user/local/share/dotnet:$PATH"
