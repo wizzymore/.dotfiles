@@ -1,8 +1,10 @@
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/Users/cristianbilu/.zsh/completions:"* ]]; then export FPATH="/Users/cristianbilu/.zsh/completions:$FPATH"; fi
 export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
 
-plugins=(git laravel)
+plugins=(asdf git laravel)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -11,12 +13,6 @@ export PATH=$PATH:$HOME/go/bin
 # Sublime Text
 
 export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
-
-# Herd injected NVM configuration
-export NVM_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-
-[[ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ]] && builtin source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
 
 # Herd injected PHP binary.
 export PATH="/Users/cristianbilu/Library/Application Support/Herd/bin/":$PATH
@@ -37,3 +33,30 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 export PATH="/user/local/share/dotnet:$PATH"
+
+
+# Herd injected NVM configuration
+export NVM_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+
+[[ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ]] && builtin source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
+
+eval "$(rbenv init - zsh)"
+. "/Users/cristianbilu/.deno/env"
+# Initialize zsh completions (added by deno install script)
+autoload -Uz compinit
+compinit
+
+export LDFLAGS="-L/opt/homebrew/lib"
+export CPPFLAGS="-I/opt/homebrew/include"
+
+export ODIN_ROOT=$HOME/odin
+export PATH=$PATH:$ODIN_ROOT
+
+# pnpm
+export PNPM_HOME="/Users/cristianbilu/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

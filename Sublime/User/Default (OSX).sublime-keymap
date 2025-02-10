@@ -57,12 +57,5 @@
 				"operand": false
 			}
 		]
-	},
-	// Open terminal
-	{
-		"keys": [
-			"super+t"
-		],
-		"command": "toggle_terminus_panel",
 	}
 ]
