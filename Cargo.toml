@@ -1,0 +1,12 @@
+[package]
+name = "dotconfig"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+colored = "3.0.0"
+dirs = "6.0.0"
+
+[[bin]]
+name = "dotconfig"
+path = "dotconfig.rs"

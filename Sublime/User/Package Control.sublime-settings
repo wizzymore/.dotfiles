@@ -13,6 +13,7 @@
 		"LSP-intelephense",
 		"LSP-json",
 		"LSP-marksman",
+		"LSP-rust-analyzer",
 		"LSP-svelte",
 		"LSP-tailwindcss",
 		"LSP-typescript",

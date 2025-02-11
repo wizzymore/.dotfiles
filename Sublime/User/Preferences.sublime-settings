@@ -13,7 +13,9 @@
 	"draw_centered": false, // TODO: Think about it
 	"ignored_packages": [
 		// "A File Icon",
-/*"A File Icon",*/
+		/*"A File Icon",*/
+		/*"LSP-rust-analyzer",*/
+		/*"LSP-rust-analyzer",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
@@ -40,8 +42,6 @@
 	"trim_trailing_white_space_on_save": "all",
 	"save_on_focus_lost": true,
 	"default_line_ending": "unix",
-	"auto_complete": false,
-	"auto_complete_commit_on_tab": true,
 	"font_face": "Geist Mono",
 	"remember_layout": true,
 	"file_exclude_patterns": [

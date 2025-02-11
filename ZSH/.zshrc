@@ -41,7 +41,6 @@ export NVM_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/nvm"
 
 [[ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ]] && builtin source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
 
-eval "$(rbenv init - zsh)"
 . "/Users/cristianbilu/.deno/env"
 # Initialize zsh completions (added by deno install script)
 autoload -Uz compinit
