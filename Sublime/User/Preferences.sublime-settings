@@ -13,9 +13,6 @@
 	"draw_centered": false, // TODO: Think about it
 	"ignored_packages": [
 		// "A File Icon",
-		/*"A File Icon",*/
-		/*"LSP-rust-analyzer",*/
-		/*"LSP-rust-analyzer",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
@@ -23,7 +20,7 @@
 	"relative_line_numbers": true,
 	"goto_anything_exclude_gitignore": true,
 	"index_exclude_gitignore": false,
-	"index_files": false,
+	"index_files": true,
 	"font_size": 15,
 	"show_encoding": true,
 	"hardware_acceleration": "opengl",
