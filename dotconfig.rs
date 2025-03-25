@@ -1,13 +1,32 @@
 use colored::Colorize;
+use dirs::config_local_dir;
 use std::{env::current_dir, fs, path::PathBuf, process::Command};
 
 fn main() {
     let home = dirs::home_dir().expect("Could not find the home directory");
     let current_dir = current_dir().expect("Could not get the current directory");
+    let config_dir = config_local_dir().expect("Could not get the config directory");
     if let None = install_bun() {
         info("Bun already installed".into());
     } else {
         info("Bun installed successfully".into());
+    }
+
+    info(format!(
+        "Path is {}",
+        config_dir.clone().into_os_string().into_string().unwrap()
+    ));
+
+    // Ghostty
+    let mut ghostty_folder = "ghostty";
+    if cfg!(target_os = "macos") {
+        ghostty_folder = "com.mitchellh.ghostty";
+    }
+    if let Some(_) = dot_link(
+        &current_dir.join("ghostty"),
+        &config_dir.join(ghostty_folder),
+    ) {
+        info("Linking Ghostty config.".into());
     }
 
     // ZSH
@@ -48,7 +67,7 @@ fn main() {
 }
 
 fn info(s: String) {
-    println!("{}\t{}", " INFO ".white().bold().on_bright_green(), s)
+    println!("{}\t{}", " INFO ".bright_green().bold(), s)
 }
 
 fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
