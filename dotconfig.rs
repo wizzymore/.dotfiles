@@ -30,10 +30,7 @@ fn main() {
     }
 
     // ZSH
-    if let Some(_) = dot_link(
-        &current_dir.join("ZSH").join(".zshrc"),
-        &home.join(".zshrc"),
-    ) {
+    if let Some(_) = dot_link(&current_dir.join("ZSH").join("zshrc"), &home.join(".zshrc")) {
         info("Linking ZSH config.".into());
     };
 
@@ -73,7 +70,7 @@ fn info(s: String) {
 fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
     let meta = fs::symlink_metadata(to);
     if let Ok(m) = meta {
-        if m.is_symlink() {
+        if m.is_symlink() && to.exists() {
             info(format!(
                 "Skipping {}",
                 from.clone().into_os_string().into_string().unwrap()
@@ -82,25 +79,13 @@ fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
         }
 
         if m.is_dir() {
-            Command::new("rm")
-                .arg("-rf")
-                .arg(to)
-                .status()
-                .expect("could not delete old symlink");
+            fs::remove_dir(to).expect("could not delete the old configuration");
         } else {
-            Command::new("rm")
-                .arg(to)
-                .status()
-                .expect("could not delete old symlink");
+            fs::remove_file(to).expect("could not delete the old configuration");
         }
     }
 
-    Command::new("ln")
-        .arg("-s")
-        .arg(from)
-        .arg(to)
-        .status()
-        .expect("could not create symlink");
+    std::os::unix::fs::symlink(from, to).expect("could not create symlink");
 
     Some(())
 }
