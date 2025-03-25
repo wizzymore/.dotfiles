@@ -65,4 +65,5 @@ esac
 export HERD_PHP_84_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/84/"
 
 alias wip="git add .; git commit -m \"WIP\""
+alias gitp="git push"
 alias vim ="nvim"
