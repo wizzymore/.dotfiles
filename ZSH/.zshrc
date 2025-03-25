@@ -4,7 +4,7 @@ export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="robbyrussell"
 
-plugins=(asdf git laravel)
+plugins=(git laravel)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -59,3 +59,10 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+
+# Herd injected PHP 8.4 configuration.
+export HERD_PHP_84_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/84/"
+
+alias wip="git add .; git commit -m \"WIP\""
+alias vim ="nvim"

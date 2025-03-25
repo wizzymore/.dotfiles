@@ -39,7 +39,7 @@
 	"trim_trailing_white_space_on_save": "all",
 	"save_on_focus_lost": true,
 	"default_line_ending": "unix",
-	"font_face": "Geist Mono",
+	"font_face": "Departure Mono",
 	"remember_layout": true,
 	"file_exclude_patterns": [
 		"*.pyc",

@@ -4,18 +4,29 @@ use std::{env::current_dir, fs, path::PathBuf, process::Command};
 fn main() {
     let home = dirs::home_dir().expect("Could not find the home directory");
     let current_dir = current_dir().expect("Could not get the current directory");
-    if !install_bun() {
-        info(&"Bun already installed".into());
+    if let None = install_bun() {
+        info("Bun already installed".into());
+    } else {
+        info("Bun installed successfully".into());
     }
 
     // ZSH
-    dot_link(
+    if let Some(_) = dot_link(
         &current_dir.join("ZSH").join(".zshrc"),
         &home.join(".zshrc"),
-    );
+    ) {
+        info("Linking ZSH config.".into());
+    };
 
+    // NVIM
+    if let Some(_) = dot_link(
+        &current_dir.join("nvim"),
+        &home.join(".config").join("nvim"),
+    ) {
+        info("Linking NVIM config.".into());
+    };
     // Sublime
-    dot_link(
+    if let Some(_) = dot_link(
         &current_dir.join("Sublime").join("User"),
         &home
             .join("Library")
@@ -23,7 +34,9 @@ fn main() {
             .join("Sublime Text")
             .join("Packages")
             .join("User"),
-    );
+    ) {
+        info("Linking Sublime config.".into());
+    }
     dot_link(
         &current_dir.join("Sublime").join("Installed Packages"),
         &home
@@ -34,19 +47,19 @@ fn main() {
     );
 }
 
-fn info(s: &String) {
+fn info(s: String) {
     println!("{}\t{}", " INFO ".white().bold().on_bright_green(), s)
 }
 
-fn dot_link(from: &PathBuf, to: &PathBuf) {
+fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
     let meta = fs::symlink_metadata(to);
     if let Ok(m) = meta {
         if m.is_symlink() {
-            info(&format!(
+            info(format!(
                 "Skipping {}",
                 from.clone().into_os_string().into_string().unwrap()
             ));
-            return;
+            return None;
         }
 
         if m.is_dir() {
@@ -69,13 +82,15 @@ fn dot_link(from: &PathBuf, to: &PathBuf) {
         .arg(to)
         .status()
         .expect("could not create symlink");
+
+    Some(())
 }
 
-fn install_bun() -> bool {
+fn install_bun() -> Option<()> {
     let home = dirs::home_dir().expect("Could not find the home directory");
     let meta = fs::symlink_metadata(home.join(".bun"));
     if meta.is_ok() {
-        return false;
+        return None;
     }
     Command::new("sh")
         .arg("-c")
@@ -83,5 +98,5 @@ fn install_bun() -> bool {
         .output()
         .expect("Failed to install bun");
 
-    true
+    Some(())
 }
