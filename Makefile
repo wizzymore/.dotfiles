@@ -2,10 +2,18 @@ UNAME_S := $(shell uname -s)
 
 all:
 ifeq ($(UNAME_S),Linux)
-	cargo build --target x86_64-unknown-linux-gnu --release --artifact-dir . -Z unstable-options
+	cargo build --target x86_64-unknown-linux-gnu --release
 endif
 ifeq ($(UNAME_S),Darwin)
-	cargo build --target aarch64-apple-darwin --release --artifact-dir . -Z unstable-options
+	cargo build --target aarch64-apple-darwin --release
+endif
+
+install:
+ifeq ($(UNAME_S),Linux)
+	cargo install --path . --target x86_64-unknown-linux-gnu --root .
+endif
+ifeq ($(UNAME_S),Darwin)
+	cargo install --path . --target aarch64-apple-darwin --root .
 endif
 
 setup:
