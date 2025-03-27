@@ -12,11 +12,6 @@ fn main() {
         info("Bun installed successfully".into());
     }
 
-    info(format!(
-        "Path is {}",
-        config_dir.clone().into_os_string().into_string().unwrap()
-    ));
-
     // Ghostty
     let mut ghostty_folder = "ghostty";
     if cfg!(target_os = "macos") {
