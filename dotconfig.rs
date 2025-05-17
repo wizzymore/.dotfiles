@@ -7,9 +7,9 @@ fn main() {
     let current_dir = current_dir().expect("Could not get the current directory");
     let config_dir = config_local_dir().expect("Could not get the config directory");
     if let None = install_bun() {
-        info("Bun already installed".into());
+        info("Bun already installed");
     } else {
-        info("Bun installed successfully".into());
+        info("Bun installed successfully");
     }
 
     // Ghostty
@@ -21,12 +21,16 @@ fn main() {
         &current_dir.join("ghostty"),
         &config_dir.join(ghostty_folder),
     ) {
-        info("Linking Ghostty config.".into());
+        info("Linking Ghostty config.");
+    }
+
+    if dot_link(&current_dir.join("zed"), &home.join(".config").join("zed")).is_some() {
+        info("Linking Zed config.")
     }
 
     // ZSH
     if let Some(_) = dot_link(&current_dir.join("ZSH").join("zshrc"), &home.join(".zshrc")) {
-        info("Linking ZSH config.".into());
+        info("Linking ZSH config.");
     };
 
     // NVIM
@@ -34,7 +38,7 @@ fn main() {
         &current_dir.join("nvim"),
         &home.join(".config").join("nvim"),
     ) {
-        info("Linking NVIM config.".into());
+        info("Linking NVIM config.");
     };
     // Sublime
     if let Some(_) = dot_link(
@@ -46,7 +50,7 @@ fn main() {
             .join("Packages")
             .join("User"),
     ) {
-        info("Linking Sublime config.".into());
+        info("Linking Sublime config.");
     }
     dot_link(
         &current_dir.join("Sublime").join("Installed Packages"),
@@ -58,18 +62,29 @@ fn main() {
     );
 }
 
-fn info(s: String) {
+fn info(s: &str) {
     println!("{}\t{}", " INFO ".bright_green().bold(), s)
 }
 
 fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
+    if !from.exists() && !to.exists() {
+        return None;
+    }
+    if !from.exists() && to.exists() {
+        info(format!("Folder not setup, copying over {}", from.display()).as_str());
+        fs::rename(to, from).expect(
+            format!(
+                "Could not move the {} folder to {}",
+                to.display(),
+                from.display()
+            )
+            .as_str(),
+        );
+    }
     let meta = fs::symlink_metadata(to);
     if let Ok(m) = meta {
         if m.is_symlink() && to.exists() {
-            info(format!(
-                "Skipping {}",
-                from.clone().into_os_string().into_string().unwrap()
-            ));
+            info(format!("Skipping {}", from.display()).as_str());
             return None;
         }
 
