@@ -10,10 +10,10 @@ endif
 
 install:
 ifeq ($(UNAME_S),Linux)
-	cargo install --path . --target x86_64-unknown-linux-gnu --root .
+	cargo install --path . --target x86_64-unknown-linux-gnu --root . --force
 endif
 ifeq ($(UNAME_S),Darwin)
-	cargo install --path . --target aarch64-apple-darwin --root .
+	cargo install --path . --target aarch64-apple-darwin --root . --force
 endif
 
 setup:

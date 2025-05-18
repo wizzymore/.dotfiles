@@ -89,7 +89,7 @@ fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
         }
 
         if m.is_dir() {
-            fs::remove_dir(to).expect("could not delete the old configuration");
+            fs::remove_dir_all(to).expect("could not delete the old configuration");
         } else {
             fs::remove_file(to).expect("could not delete the old configuration");
         }
