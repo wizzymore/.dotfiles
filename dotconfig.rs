@@ -1,6 +1,12 @@
 use colored::Colorize;
 use dirs::config_local_dir;
-use std::{env::current_dir, fs, path::PathBuf, process::Command};
+use std::{
+    env::current_dir,
+    fs,
+    io::{BufRead, BufReader},
+    path::PathBuf,
+    process::Command,
+};
 
 fn main() {
     let home = dirs::home_dir().expect("Could not find the home directory");
@@ -10,6 +16,11 @@ fn main() {
         info("Bun already installed");
     } else {
         info("Bun installed successfully");
+    }
+    if let None = install_starship() {
+        info("Starship already installed");
+    } else {
+        info("Starship installed successfully");
     }
 
     // Ghostty
@@ -106,11 +117,56 @@ fn install_bun() -> Option<()> {
     if meta.is_ok() {
         return None;
     }
-    Command::new("sh")
+
+    let mut cmd = Command::new("sh")
         .arg("-c")
         .arg("curl -fsSL https://bun.sh/install | bash")
-        .output()
+        .spawn()
         .expect("Failed to install bun");
+
+    if let Some(stdout) = cmd.stdout.as_mut() {
+        let stdout_reader = BufReader::new(stdout);
+
+        for line in stdout_reader.lines() {
+            println!("{}", line.unwrap())
+        }
+    }
+
+    cmd.wait().unwrap();
+
+    Some(())
+}
+
+fn install_starship() -> Option<()> {
+    let home = dirs::home_dir().expect("Could not find the home directory");
+    let starship_path = home.join(".config/starship.toml");
+    let meta = fs::symlink_metadata(&starship_path);
+    if meta.is_ok() {
+        return None;
+    }
+    let mut cmd = Command::new("cargo")
+        .arg("install")
+        .arg("starship")
+        .spawn()
+        .expect("Failed to install starship");
+
+    if let Some(stdout) = cmd.stdout.as_mut() {
+        let stdout_reader = BufReader::new(stdout);
+
+        for line in stdout_reader.lines() {
+            println!("{}", line.unwrap())
+        }
+    }
+
+    cmd.wait().expect("Something bad happened");
+
+    Command::new("starship")
+        .arg("preset")
+        .arg("no-nerd-font")
+        .arg("-o")
+        .arg(starship_path)
+        .spawn()
+        .expect("Failed to set preset for starship");
 
     Some(())
 }

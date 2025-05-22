@@ -46,7 +46,7 @@ export NVM_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/nvm"
 autoload -Uz compinit
 compinit
 
-#export LDFLAGS="-L/opt/homebrew/lib"
+export LDFLAGS="-L/opt/homebrew/lib"
 export CPPFLAGS="-I/opt/homebrew/include"
 
 export ODIN_ROOT=$HOME/odin
@@ -68,3 +68,5 @@ alias wip="git add .; git commit -m \"WIP\""
 alias gip="git push"
 alias gis="git status"
 alias vim ="nvim"
+
+eval "$(starship init zsh)"
