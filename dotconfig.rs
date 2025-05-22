@@ -8,6 +8,8 @@ use std::{
     process::Command,
 };
 
+static CARGO_PACKAGES: &[&str] = &["starship"];
+
 fn main() {
     let home = dirs::home_dir().expect("Could not find the home directory");
     let current_dir = current_dir().expect("Could not get the current directory");
@@ -17,10 +19,13 @@ fn main() {
     } else {
         info("Bun installed successfully");
     }
-    if let None = install_starship() {
-        info("Starship already installed");
-    } else {
-        info("Starship installed successfully");
+
+    for c in CARGO_PACKAGES {
+        if let None = install_cargo_dep(c) {
+            info(format!("{} already installed", capitalize(c)).as_str());
+        } else {
+            info(format!("{} installed successfully", capitalize(c)).as_str());
+        }
     }
 
     // Ghostty
@@ -137,36 +142,27 @@ fn install_bun() -> Option<()> {
     Some(())
 }
 
-fn install_starship() -> Option<()> {
-    let home = dirs::home_dir().expect("Could not find the home directory");
-    let starship_path = home.join(".config/starship.toml");
-    let meta = fs::symlink_metadata(&starship_path);
-    if meta.is_ok() {
-        return None;
-    }
-    let mut cmd = Command::new("cargo")
+fn install_cargo_dep(dep: &str) -> Option<()> {
+    let cmd = Command::new("cargo")
         .arg("install")
-        .arg("starship")
-        .spawn()
+        .arg(dep)
+        .output()
         .expect("Failed to install starship");
 
-    if let Some(stdout) = cmd.stdout.as_mut() {
-        let stdout_reader = BufReader::new(stdout);
-
-        for line in stdout_reader.lines() {
-            println!("{}", line.unwrap())
+    if let Some(code) = cmd.status.code() {
+        if code != 0 {
+            return None;
         }
     }
 
-    cmd.wait().expect("Something bad happened");
-
-    Command::new("starship")
-        .arg("preset")
-        .arg("no-nerd-font")
-        .arg("-o")
-        .arg(starship_path)
-        .spawn()
-        .expect("Failed to set preset for starship");
-
     Some(())
+}
+
+/// Capitalizes the first character in s.
+pub fn capitalize(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
 }
