@@ -14,17 +14,16 @@ fn main() {
     let home = dirs::home_dir().expect("Could not find the home directory");
     let current_dir = current_dir().expect("Could not get the current directory");
     let config_dir = config_local_dir().expect("Could not get the config directory");
-    if let None = install_bun() {
-        info("Bun already installed");
-    } else {
-        info("Bun installed successfully");
+
+    match install_bun() {
+        Some(()) => info("Bun already installed"),
+        None => info("Bun installed successfully"),
     }
 
     for c in CARGO_PACKAGES {
-        if let None = install_cargo_dep(c) {
-            info(format!("{} already installed", capitalize(c)).as_str());
-        } else {
-            info(format!("{} installed successfully", capitalize(c)).as_str());
+        match install_cargo_dep(c) {
+            Some(()) => info(format!("{} already installed", capitalize(c)).as_str()),
+            None => info(format!("{} installed successfully", capitalize(c)).as_str()),
         }
     }
 
@@ -33,10 +32,12 @@ fn main() {
     if cfg!(target_os = "macos") {
         ghostty_folder = "com.mitchellh.ghostty";
     }
-    if let Some(_) = dot_link(
+    if dot_link(
         &current_dir.join("ghostty"),
         &config_dir.join(ghostty_folder),
-    ) {
+    )
+    .is_some()
+    {
         info("Linking Ghostty config.");
     }
 
@@ -45,19 +46,21 @@ fn main() {
     }
 
     // ZSH
-    if let Some(_) = dot_link(&current_dir.join("ZSH").join("zshrc"), &home.join(".zshrc")) {
+    if dot_link(&current_dir.join("ZSH").join("zshrc"), &home.join(".zshrc")).is_some() {
         info("Linking ZSH config.");
     };
 
     // NVIM
-    if let Some(_) = dot_link(
+    if dot_link(
         &current_dir.join("nvim"),
         &home.join(".config").join("nvim"),
-    ) {
+    )
+    .is_some()
+    {
         info("Linking NVIM config.");
     };
     // Sublime
-    if let Some(_) = dot_link(
+    if dot_link(
         &current_dir.join("Sublime").join("User"),
         &home
             .join("Library")
@@ -65,9 +68,12 @@ fn main() {
             .join("Sublime Text")
             .join("Packages")
             .join("User"),
-    ) {
+    )
+    .is_some()
+    {
         info("Linking Sublime config.");
     }
+
     dot_link(
         &current_dir.join("Sublime").join("Installed Packages"),
         &home
@@ -88,14 +94,13 @@ fn dot_link(from: &PathBuf, to: &PathBuf) -> Option<()> {
     }
     if !from.exists() && to.exists() {
         info(format!("Folder not setup, copying over {}", from.display()).as_str());
-        fs::rename(to, from).expect(
-            format!(
+        fs::rename(to, from).unwrap_or_else(|_| {
+            panic!(
                 "Could not move the {} folder to {}",
                 to.display(),
                 from.display()
             )
-            .as_str(),
-        );
+        });
     }
     let meta = fs::symlink_metadata(to);
     if let Ok(m) = meta {
