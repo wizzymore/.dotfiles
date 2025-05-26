@@ -9,14 +9,16 @@
 {
   "vim_mode": true,
   "ui_font_size": 15,
-  "ui_font_family": "Departure Mono",
-  "buffer_font_family": "Departure Mono",
+  "ui_font_family": "JetBrains Mono",
+  "buffer_font_family": "JetBrains Mono",
+  "buffer_font_weight": 500,
+  "ui_font_weight": 500,
   "buffer_font_size": 15,
   "buffer_line_height": "standard",
   "theme": {
     "mode": "system",
     "light": "0x96f Theme",
-    "dark": "0x96f Theme"
+    "dark": "Gruvbox Dark Hard"
   },
   "lsp": {
     "clangd": {

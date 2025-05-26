@@ -5,4 +5,5 @@
 		"source.organizeImports": true,
 	},
 	"lsp_format_on_save": true,
+	"show_inlay_hints": true
 }
