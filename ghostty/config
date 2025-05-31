@@ -1,2 +1,4 @@
-font-family = Departure Mono
-theme = 0x96f
+font-family = JetBrains Mono
+#theme = Violet Light
+#theme = GruvboxDarkHard
+theme = Github-Light-Default
