@@ -1,0 +1,54 @@
+DotConfig(
+    dependencies: [
+        Cargo(name: "starship"),
+        Bash("curl -fsSL https://bun.sh/install")
+    ],
+    symlinks: [
+        Location(
+            from: "ZSH/zshrc",
+            to: String("$HOME/.zshrc")
+        ),
+        Location(
+            from: "zed",
+            to: String("$UNIX_CONFIG/zed")
+        ),
+        Location(
+            from: "ghostty",
+            to: Os(
+                macos: "$CONFIG/com.mitchellh.ghostty",
+                linux: "$UNIX_CONFIG/ghostty",
+            )
+        ),
+        Location(
+            from: "nvim",
+            to: String("$UNIX_CONFIG/nvim")
+        ),
+        Location(
+            from: "Sublime/User",
+            to: Os(
+                macos: "$HOME/Library/Application Support/Sublime Text/Packages/User",
+                linux: "",
+            )
+        ),
+        Location(
+            from: "Sublime/Installed Packages",
+            to: Os(
+                macos: "$HOME/Library/Application Support/Sublime Text/Installed Packages",
+                linux: "",
+            )
+        ),
+        Location(
+            from: "starship/starship.toml",
+            to: String("$UNIX_CONFIG/starship.toml"),
+        )
+    ],
+    copies: [
+        Location(
+            from: "fonts",
+            to: Os(
+                macos: "$HOME/Library/Fonts",
+                linux: "$HOME/.local/.share/fonts"
+            )
+        )
+    ]
+)

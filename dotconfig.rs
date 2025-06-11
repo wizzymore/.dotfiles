@@ -1,150 +1,121 @@
 use colored::Colorize;
 use dirs::config_local_dir;
-use std::{
-    env::current_dir,
-    fs,
-    io::{BufRead, BufReader},
-    path::Path,
-    process::Command,
-};
-use thiserror::Error;
+use serde::Deserialize;
+use std::{env::current_dir, fmt, fmt::Debug, fs, path::Path};
 
-static CARGO_PACKAGES: &[&dyn CargoPackage] = &[&Starship {}];
-
-#[derive(Error, Debug)]
-pub enum DotConfigError<'a> {
-    #[error("Could not install package `{0}`")]
-    FailedToInstall(&'a str),
-    #[error("{0} already installed")]
-    AlreadyInstalled(&'a str),
+#[derive(Debug, Deserialize)]
+enum OsOrString {
+    Os { macos: String, linux: String },
+    String(String),
 }
 
-trait CargoPackage: Sync {
-    fn get_package_name(&self) -> &str;
-    fn after_install(&self) {}
-    fn install_package(&self) -> Result<(), DotConfigError> {
-        let Ok(cmd) = Command::new("cargo")
-            .arg("install")
-            .arg(self.get_package_name())
-            .output()
-        else {
-            return Err(DotConfigError::FailedToInstall(self.get_package_name()));
-        };
-
-        if let Some(code) = cmd.status.code() {
-            if code != 0 {
-                return Err(DotConfigError::FailedToInstall(self.get_package_name()));
+impl fmt::Display for OsOrString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OsOrString::Os { macos, linux } => {
+                write!(f, "macOS: {}, Linux: {}", macos, linux)
             }
+            OsOrString::String(val) => write!(f, "{}", val),
         }
-
-        self.after_install();
-
-        Ok(())
     }
 }
 
-struct Starship;
+#[derive(Debug, Deserialize)]
+struct Location {
+    from: String,
+    to: OsOrString,
+}
 
-impl CargoPackage for Starship {
-    fn get_package_name(&self) -> &str {
-        "starship"
-    }
-    fn after_install(&self) {
-        let home = dirs::home_dir().expect("Could not find the home directory");
-        if dot_link("starship/starship.toml", home.join(".config/starship.toml")).is_some() {
-            info("Linking Starship config.");
+#[derive(Debug, Deserialize)]
+struct DotConfig {
+    symlinks: Vec<Location>,
+    copies: Vec<Location>,
+}
+
+static CONFIG_STRING: &str = include_str!("dotconfig.ron");
+
+fn format_location(loc: &Location) -> String {
+    let home_dir = dirs::home_dir().expect("Could not find the home directory");
+    let config_dir = config_local_dir().expect("Could not get the config directory");
+
+    let mut s = match &loc.to {
+        OsOrString::String(s) => s.clone(),
+        OsOrString::Os { macos, linux } => {
+            let s;
+            if cfg!(target_os = "macos") {
+                s = macos.clone();
+            } else {
+                s = linux.clone();
+            }
+
+            s
         }
-    }
+    };
+    s = s.replace("$UNIX_CONFIG", home_dir.join(".config").to_str().unwrap());
+    s = s.replace("$CONFIG", config_dir.to_str().unwrap());
+    s = s.replace("$HOME", home_dir.to_str().unwrap());
+    s
 }
 
 fn main() {
-    let home = dirs::home_dir().expect("Could not find the home directory");
-    let config_dir = config_local_dir().expect("Could not get the config directory");
+    let dot_config: DotConfig = ron::from_str(CONFIG_STRING).expect("Could not parse config file");
 
-    match install_bun() {
-        Ok(()) => info("Bun installed successfully"),
-        Err(err) => info(&format!("{err}")),
-    }
-
-    for crt in CARGO_PACKAGES {
-        let name = capitalize(crt.get_package_name());
-        match crt.install_package() {
-            Ok(_) => info(&format!("{name} already installed",)),
-            Err(_) => info(&format!("{name} installed successfully",)),
+    for symlink in dot_config.symlinks {
+        let to = format_location(&symlink);
+        if to == "" {
+            continue;
         }
+
+        dot_link(symlink.from, to);
     }
 
-    let ghostty_folder = if cfg!(target_os = "macos") {
-        "com.mitchellh.ghostty"
-    } else {
-        "ghostty"
-    };
+    for cpy in dot_config.copies {
+        let to = format_location(&cpy);
+        if to == "" {
+            continue;
+        }
 
-    if dot_link("ghostty", config_dir.join(ghostty_folder)).is_some() {
-        info("Linking Ghostty config.");
+        copy(cpy.from, to);
     }
-
-    if dot_link("zed", home.join(".config/zed")).is_some() {
-        info("Linking Zed config.")
-    }
-
-    // ZSH
-    if dot_link("ZSH/zshrc", home.join(".zshrc")).is_some() {
-        info("Linking ZSH config.");
-    };
-
-    // NVIM
-    if dot_link("nvim", home.join(".config/nvim")).is_some() {
-        info("Linking NVIM config.");
-    };
-    // Sublime
-    if dot_link(
-        "Sublime/User",
-        home.join("Library/Application Support/Sublime Text/Packages/User"),
-    )
-    .is_some()
-    {
-        info("Linking Sublime config.");
-    }
-
-    dot_link(
-        "Sublime/Installed Packages",
-        home.join("Library")
-            .join("Application Support")
-            .join("Sublime Text")
-            .join("Installed Packages"),
-    );
-
-    #[cfg(target_os = "macos")]
-    copy_fonts("fonts", home.join("Library/Fonts"));
 }
 
 fn info(s: &str) {
     println!("{}\t{}", " INFO ".bright_green().bold(), s)
 }
 
-fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) -> Option<()> {
-    let current_dir = current_dir().expect("Could not fetch current directory");
-    let from = current_dir.join(from);
+fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     let to = to.as_ref();
-    if !from.exists() && !to.exists() {
-        return None;
+    let from_abs = current_dir().unwrap().join(&from);
+    if !from_abs.exists() && !to.exists() {
+        return;
     }
-    if !from.exists() {
-        info(format!("Folder not setup, copying over {}", from.display()).as_str());
-        fs::rename(to, &from).unwrap_or_else(|_| {
+    if !from_abs.exists() {
+        info(format!("Folder not setup, copying over {}", from_abs.display()).as_str());
+        fs::rename(to, &from_abs).unwrap_or_else(|_| {
             panic!(
                 "Could not move the {} folder to {}",
                 to.display(),
-                from.display()
+                from_abs.display()
             )
         });
     }
 
     if let Ok(m) = fs::symlink_metadata(to) {
         if m.is_symlink() {
-            info(format!("Skipping {}", from.display()).as_str());
-            return None;
+            let target = fs::read_link(&to).expect("Could not read the symlink");
+
+            if target == from_abs {
+                info(
+                    format!(
+                        "Skipping {}\n\t {}: \t{}",
+                        from_abs.display(),
+                        "To".bright_blue(),
+                        to.display(),
+                    )
+                    .as_str(),
+                );
+                return;
+            }
         }
 
         if m.is_dir() {
@@ -154,57 +125,54 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) -> Option<()> {
         }
     }
 
-    std::os::unix::fs::symlink(&from, &to).expect("could not create symlink");
-    Some(())
+    std::os::unix::fs::symlink(&from_abs, &to).expect(
+        format!(
+            "could not create symlink from `{}` to `{}`",
+            from_abs.display(),
+            to.display()
+        )
+        .as_str(),
+    );
+    info(format!("Linked {}", from_abs.display()).as_str());
 }
 
-fn install_bun() -> Result<(), DotConfigError<'static>> {
-    let home = dirs::home_dir().expect("Could not find the home directory");
-    let meta = fs::symlink_metadata(home.join(".bun"));
-    if meta.is_ok() {
-        return Err(DotConfigError::AlreadyInstalled("Bun"));
-    }
-
-    let Ok(mut cmd) = Command::new("sh")
-        .arg("-c")
-        .arg("curl -fsSL https://bun.sh/install | bash")
-        .spawn()
-    else {
-        return Err(DotConfigError::FailedToInstall("Bun"));
-    };
-
-    if let Some(stdout) = cmd.stdout.as_mut() {
-        let stdout_reader = BufReader::new(stdout);
-
-        for line in stdout_reader.lines() {
-            println!("{}", line.unwrap())
+fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
+    let meta = fs::symlink_metadata(&from).expect(
+        format!(
+            "Could not get metadata of copy from {}",
+            from.as_ref().display()
+        )
+        .as_str(),
+    );
+    if meta.is_dir() {
+        let files = fs::read_dir(&from).expect("Could not open fonts directory");
+        for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
+            let target = to.as_ref().join(file.file_name());
+            fs::copy(file.path(), &target).unwrap_or_else(|e| {
+                panic!(
+                    "Could not copy {} to {}: {e}",
+                    file.file_name().display(),
+                    target.display(),
+                )
+            });
         }
-    }
-
-    cmd.wait().unwrap();
-
-    Ok(())
-}
-
-/// Capitalizes the first character in s.
-fn capitalize(s: &str) -> String {
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().to_string() + c.as_str(),
-    }
-}
-
-fn copy_fonts<T: AsRef<Path>, E: AsRef<Path>>(path: T, target_dir: E) {
-    let files = fs::read_dir(&path).expect("Could not open fonts directory");
-    for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
-        let target = target_dir.as_ref().join(file.file_name());
-        fs::copy(file.path(), &target).unwrap_or_else(|e| {
+    } else {
+        fs::copy(&from, &to).unwrap_or_else(|e| {
             panic!(
                 "Could not copy {} to {}: {e}",
-                file.file_name().display(),
-                target.display(),
+                from.as_ref().display(),
+                to.as_ref().display(),
             )
         });
     }
+
+    info(
+        format!(
+            "Copied {}\n\t {}: \t{}",
+            from.as_ref().display(),
+            "To".bright_blue(),
+            to.as_ref().display(),
+        )
+        .as_str(),
+    );
 }

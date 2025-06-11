@@ -2,19 +2,12 @@ UNAME_S := $(shell uname -s)
 
 all:
 ifeq ($(UNAME_S),Linux)
-	cargo build --target x86_64-unknown-linux-gnu --release
+	cargo run --release
 endif
 ifeq ($(UNAME_S),Darwin)
-	cargo build --target aarch64-apple-darwin --release
+	cargo run --release
 endif
-
-install:
-ifeq ($(UNAME_S),Linux)
-	cargo install --path . --target x86_64-unknown-linux-gnu --root . --force
-endif
-ifeq ($(UNAME_S),Darwin)
-	cargo install --path . --target aarch64-apple-darwin --root . --force
-endif
+	cargo clean
 
 setup:
 ifeq ($(UNAME_S),Linux)
