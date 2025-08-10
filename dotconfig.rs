@@ -91,13 +91,14 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     }
     if !from_abs.exists() {
         info(format!("Folder not setup, copying over {}", from_abs.display()).as_str());
-        fs::rename(to, &from_abs).unwrap_or_else(|_| {
-            panic!(
+        if fs::rename(to, &from_abs).is_err() {
+            println!(
                 "Could not move the {} folder to {}",
                 to.display(),
                 from_abs.display()
-            )
-        });
+            );
+            return;
+        }
     }
 
     if let Ok(m) = fs::symlink_metadata(to) {
@@ -123,16 +124,16 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         } else {
             fs::remove_file(to).expect("could not delete the old configuration");
         }
-    }
+    };
 
-    std::os::unix::fs::symlink(&from_abs, &to).expect(
-        format!(
+    if std::os::unix::fs::symlink(&from_abs, &to).is_err() {
+        println!(
             "could not create symlink from `{}` to `{}`",
             from_abs.display(),
             to.display()
-        )
-        .as_str(),
-    );
+        );
+        return;
+    }
     info(format!("Linked {}", from_abs.display()).as_str());
 }
 
@@ -148,13 +149,14 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         let files = fs::read_dir(&from).expect("Could not open fonts directory");
         for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
             let target = to.as_ref().join(file.file_name());
-            fs::copy(file.path(), &target).unwrap_or_else(|e| {
-                panic!(
+            if let Err(e) = fs::copy(file.path(), &target) {
+                println!(
                     "Could not copy {} to {}: {e}",
                     file.file_name().display(),
                     target.display(),
-                )
-            });
+                );
+                return;
+            };
         }
     } else {
         fs::copy(&from, &to).unwrap_or_else(|e| {
