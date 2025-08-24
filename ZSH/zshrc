@@ -38,10 +38,16 @@ if [[ `uname` == Darwin ]]; then
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
   [[ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ]] && builtin source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
-fi
 
-export LDFLAGS="-L/opt/homebrew/lib"
-export CPPFLAGS="-I/opt/homebrew/include"
+  export LDFLAGS="-L/opt/homebrew/lib"
+  export CPPFLAGS="-I/opt/homebrew/include"
+
+  # Ruby
+  export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+  export LDFLAGS="-L/opt/homebrew/opt/ruby/lib"
+  export CPPFLAGS="-I/opt/homebrew/opt/ruby/include"
+  export PKG_CONFIG_PATH="/opt/homebrew/opt/ruby/lib/pkgconfig"
+fi
 
 export ODIN_ROOT=$HOME/odin
 export PATH=$PATH:$ODIN_ROOT
@@ -65,11 +71,7 @@ TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 'page faults from disk:     %F'$'\n'\
 'other page faults:         %R'
 
-# Ruby
-export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-export LDFLAGS="-L/opt/homebrew/opt/ruby/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/ruby/include"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/ruby/lib/pkgconfig"
+. "$HOME/.cargo/env"
 
 # Let this be last
 eval "$(starship init zsh)"

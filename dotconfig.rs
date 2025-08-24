@@ -1,7 +1,13 @@
 use colored::Colorize;
 use dirs::config_local_dir;
 use serde::Deserialize;
-use std::{env::current_dir, fmt, fmt::Debug, fs, path::Path};
+use std::{
+    env::current_dir,
+    fmt::{self, Debug},
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 #[derive(Debug, Deserialize)]
 enum OsOrString {
@@ -27,60 +33,65 @@ struct Location {
 }
 
 #[derive(Debug, Deserialize)]
+enum Dependency {
+    Cargo {
+        name: String,
+    },
+    Bash {
+        name: String,
+        command: String,
+        #[serde(default)]
+        binary: Option<String>,
+        #[serde(default)]
+        directory: Option<String>,
+    },
+}
+
+#[derive(Debug, Deserialize)]
 struct DotConfig {
     symlinks: Vec<Location>,
     copies: Vec<Location>,
+    dependencies: Vec<Dependency>,
 }
 
 static CONFIG_STRING: &str = include_str!("dotconfig.ron");
 
 fn format_location(loc: &Location) -> String {
-    let home_dir = dirs::home_dir().expect("Could not find the home directory");
-    let config_dir = config_local_dir().expect("Could not get the config directory");
-
-    let mut s = match &loc.to {
+    let s = match &loc.to {
         OsOrString::String(s) => s.clone(),
         OsOrString::Os { macos, linux } => {
-            let s;
             if cfg!(target_os = "macos") {
-                s = macos.clone();
-            } else {
-                s = linux.clone();
+                return macos.clone();
             }
 
-            s
+            linux.clone()
         }
     };
+    format_path(s)
+}
+
+fn format_path(s: String) -> String {
+    let home_dir = dirs::home_dir().expect("Could not find the home directory");
+    let config_dir = config_local_dir().expect("Could not get the config directory");
+    let mut s = s;
     s = s.replace("$UNIX_CONFIG", home_dir.join(".config").to_str().unwrap());
     s = s.replace("$CONFIG", config_dir.to_str().unwrap());
     s = s.replace("$HOME", home_dir.to_str().unwrap());
     s
 }
 
-fn main() {
-    let dot_config: DotConfig = ron::from_str(CONFIG_STRING).expect("Could not parse config file");
-
-    for symlink in dot_config.symlinks {
-        let to = format_location(&symlink);
-        if to == "" {
-            continue;
-        }
-
-        dot_link(symlink.from, to);
-    }
-
-    for cpy in dot_config.copies {
-        let to = format_location(&cpy);
-        if to == "" {
-            continue;
-        }
-
-        copy(cpy.from, to);
-    }
+fn info<T>(s: T)
+where
+    T: AsRef<str>,
+{
+    println!("{}\t{}", " INFO ".bright_green().bold(), s.as_ref())
 }
 
-fn info(s: &str) {
-    println!("{}\t{}", " INFO ".bright_green().bold(), s)
+fn error<T>(s: T)
+where
+    T: AsRef<str>,
+{
+    println!("{}\t{}", " ERROR ".bright_red().bold(), s.as_ref())
 }
 
 fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
@@ -92,11 +103,11 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     if !from_abs.exists() {
         info(format!("Folder not setup, copying over {}", from_abs.display()).as_str());
         if fs::rename(to, &from_abs).is_err() {
-            println!(
+            error(format!(
                 "Could not move the {} folder to {}",
                 to.display(),
                 from_abs.display()
-            );
+            ));
             return;
         }
     }
@@ -127,14 +138,14 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     };
 
     if std::os::unix::fs::symlink(&from_abs, &to).is_err() {
-        println!(
+        error(format!(
             "could not create symlink from `{}` to `{}`",
             from_abs.display(),
             to.display()
-        );
+        ));
         return;
     }
-    info(format!("Linked {}", from_abs.display()).as_str());
+    info(format!("Linked {}", from_abs.display()));
 }
 
 fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
@@ -150,31 +161,116 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
             let target = to.as_ref().join(file.file_name());
             if let Err(e) = fs::copy(file.path(), &target) {
-                println!(
+                error(format!(
                     "Could not copy {} to {}: {e}",
                     file.file_name().display(),
                     target.display(),
-                );
+                ));
                 return;
             };
         }
-    } else {
-        fs::copy(&from, &to).unwrap_or_else(|e| {
-            panic!(
-                "Could not copy {} to {}: {e}",
-                from.as_ref().display(),
-                to.as_ref().display(),
-            )
-        });
+    } else if let Err(e) = fs::copy(&from, &to) {
+        error(format!(
+            "Could not copy {} to {}: {e}",
+            from.as_ref().display(),
+            to.as_ref().display(),
+        ));
+        return;
     }
 
-    info(
-        format!(
-            "Copied {}\n\t {}: \t{}",
-            from.as_ref().display(),
-            "To".bright_blue(),
-            to.as_ref().display(),
-        )
-        .as_str(),
-    );
+    info(format!(
+        "Copied {}\n\t {}: \t{}",
+        from.as_ref().display(),
+        "To".bright_blue(),
+        to.as_ref().display(),
+    ));
+}
+
+fn main() {
+    let dot_config: DotConfig = ron::from_str(CONFIG_STRING).expect("Could not parse config file");
+
+    // Make sure the config directory exists
+    {
+        let config_dir = config_local_dir().expect("Could not get the config directory");
+
+        if let Err(e) = fs::create_dir(config_dir) {
+            if e.kind() != std::io::ErrorKind::AlreadyExists {
+                error(format!(
+                    "Could not create the config directory: {}",
+                    e.to_string()
+                ));
+                return;
+            }
+        }
+    }
+
+    for symlink in dot_config.symlinks {
+        let to = format_location(&symlink);
+        if to == "" {
+            continue;
+        }
+
+        dot_link(symlink.from, to);
+    }
+
+    for cpy in dot_config.copies {
+        let to = format_location(&cpy);
+        if to == "" {
+            continue;
+        }
+
+        copy(cpy.from, to);
+    }
+
+    for dep in dot_config.dependencies {
+        match dep {
+            Dependency::Cargo { name } => {
+                if which::which(&name).is_ok() {
+                    info(format!("Dependency {name} already installed, skipping"));
+                    continue;
+                }
+
+                info(format!("Installing cargo dep {name}"));
+                if let Err(e) = Command::new("cargo")
+                    .arg("install")
+                    .arg(&name)
+                    // Print to the same stdout/stderr as this program
+                    .stdin(std::process::Stdio::inherit())
+                    .stdout(std::process::Stdio::inherit())
+                    .status()
+                {
+                    error(format!("Could not install cargo dep {name}: {e}"));
+                }
+            }
+            Dependency::Bash {
+                name,
+                command,
+                binary,
+                directory,
+            } => {
+                if let Some(binary) = binary {
+                    if which::which(&binary).is_ok() {
+                        info(format!("Dependency {name} already installed, skipping"));
+                        continue;
+                    }
+                }
+                if let Some(directory) = directory {
+                    let dir = PathBuf::from(format_path(directory));
+                    if dir.exists() {
+                        info(format!("Dependency {name} already installed, skipping"));
+                        continue;
+                    }
+                }
+                info(format!("Running bash command: `{command}`"));
+                if let Err(e) = Command::new("bash")
+                    .arg("-c")
+                    .arg(format!("{command} | bash"))
+                    .stdout(std::process::Stdio::inherit())
+                    .status()
+                {
+                    error(format!("Could not run `{command}`: {e}"));
+                }
+            }
+        }
+    }
 }

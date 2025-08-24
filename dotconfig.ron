@@ -1,8 +1,8 @@
 DotConfig(
     dependencies: [
         Cargo(name: "starship"),
-        Bash("curl -fsSL https://bun.sh/install"),
-	Bash("curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh")
+        Bash(name: "bun", command: "curl -fsSL https://bun.sh/install", binary: Some("bun")),
+        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh", directory: Some("$HOME/.oh-my-zsh"))
     ],
     symlinks: [
         Location(
