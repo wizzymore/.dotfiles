@@ -55,7 +55,7 @@ export PATH=$PATH:$ODIN_ROOT
 alias wip="git add .; git commit -m \"WIP\""
 alias gip="git push"
 alias gis="git status"
-alias vim ="nvim"
+alias vim="nvim"
 
 if [[ `uname` == Darwin ]]; then
     MAX_MEMORY_UNITS=KB
