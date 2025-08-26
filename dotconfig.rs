@@ -36,6 +36,8 @@ struct Location {
 enum Dependency {
     Cargo {
         name: String,
+        #[serde(default)]
+        binary: Option<String>,
     },
     Bash {
         name: String,
@@ -59,13 +61,10 @@ static CONFIG_STRING: &str = include_str!("dotconfig.ron");
 fn format_location(loc: &Location) -> String {
     let s = match &loc.to {
         OsOrString::String(s) => s.clone(),
-        OsOrString::Os { macos, linux } => {
-            if cfg!(target_os = "macos") {
-                return macos.clone();
-            }
-
-            linux.clone()
-        }
+        #[cfg(target_os = "macos")]
+        OsOrString::Os { macos, linux: _ } => macos.clone(),
+        #[cfg(target_os = "linux")]
+        OsOrString::Os { macos: _, linux } => linux.clone(),
     };
     format_path(s)
 }
@@ -149,13 +148,13 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 }
 
 fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
-    let meta = fs::symlink_metadata(&from).expect(
-        format!(
+    let meta = fs::symlink_metadata(&from).unwrap_or_else(|_| {
+        panic!(
             "Could not get metadata of copy from {}",
             from.as_ref().display()
         )
-        .as_str(),
-    );
+    });
+
     if meta.is_dir() {
         let files = fs::read_dir(&from).expect("Could not open fonts directory");
         for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
@@ -195,10 +194,7 @@ fn main() {
 
         if let Err(e) = fs::create_dir(config_dir) {
             if e.kind() != std::io::ErrorKind::AlreadyExists {
-                error(format!(
-                    "Could not create the config directory: {}",
-                    e.to_string()
-                ));
+                error(format!("Could not create the config directory: {}", e));
                 return;
             }
         }
@@ -206,7 +202,7 @@ fn main() {
 
     for symlink in dot_config.symlinks {
         let to = format_location(&symlink);
-        if to == "" {
+        if to.is_empty() {
             continue;
         }
 
@@ -215,7 +211,7 @@ fn main() {
 
     for cpy in dot_config.copies {
         let to = format_location(&cpy);
-        if to == "" {
+        if to.is_empty() {
             continue;
         }
 
@@ -224,8 +220,9 @@ fn main() {
 
     for dep in dot_config.dependencies {
         match dep {
-            Dependency::Cargo { name } => {
-                if which::which(&name).is_ok() {
+            Dependency::Cargo { name, binary } => {
+                let bin = binary.as_ref().unwrap_or(&name);
+                if which::which(bin).is_ok() {
                     info(format!("Dependency {name} already installed, skipping"));
                     continue;
                 }
