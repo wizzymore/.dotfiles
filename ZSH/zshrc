@@ -56,6 +56,8 @@ alias wip="git add .; git commit -m \"WIP\""
 alias gip="git push"
 alias gis="git status"
 alias vim="nvim"
+alias ls="exa --icons"
+alias la="ls -la"
 
 if [[ `uname` == Darwin ]]; then
     MAX_MEMORY_UNITS=KB
