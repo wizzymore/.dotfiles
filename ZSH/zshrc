@@ -58,6 +58,7 @@ alias gis="git status"
 alias vim="nvim"
 alias ls="exa --icons"
 alias la="ls -la"
+alias grep="rg"
 
 if [[ `uname` == Darwin ]]; then
     MAX_MEMORY_UNITS=KB
