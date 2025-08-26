@@ -16,6 +16,8 @@
 		/*"Package Control",*/
 		/*"A File Icon",*/
 		/*"LSP-json",*/
+/*"Package Control",*/
+/*"LSP-css",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
