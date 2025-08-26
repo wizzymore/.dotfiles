@@ -56,7 +56,7 @@ alias wip="git add .; git commit -m \"WIP\""
 alias gip="git push"
 alias gis="git status"
 alias vim="nvim"
-alias ls="exa --icons"
+alias ls="exa"
 alias la="ls -la"
 alias grep="rg"
 
