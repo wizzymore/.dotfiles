@@ -37,7 +37,7 @@ enum Dependency {
     Cargo {
         name: String,
         #[serde(default)]
-        binary: Option<String>,
+        git: Option<String>,
     },
     Bash {
         name: String,
@@ -220,17 +220,16 @@ fn main() {
 
     for dep in dot_config.dependencies {
         match dep {
-            Dependency::Cargo { name, binary } => {
-                let bin = binary.as_ref().unwrap_or(&name);
-                if which::which(bin).is_ok() {
-                    info(format!("Dependency {name} already installed, skipping"));
-                    continue;
-                }
-
+            Dependency::Cargo { name, git } => {
                 info(format!("Installing cargo dep {name}"));
-                if let Err(e) = Command::new("cargo")
-                    .arg("install")
-                    .arg(&name)
+                let mut command = Command::new("cargo");
+                command.arg("install");
+                if let Some(git) = git {
+                    command.arg("--git").arg(git);
+                } else {
+                    command.arg(&name);
+                }
+                if let Err(e) = command
                     // Print to the same stdout/stderr as this program
                     .stdin(std::process::Stdio::inherit())
                     .stdout(std::process::Stdio::inherit())

@@ -2,7 +2,8 @@ DotConfig(
     dependencies: [
         Cargo(name: "starship"),
         Cargo(name: "exa"),
-        Cargo(name: "ripgrep", binary: Some("rg")),
+        Cargo(name: "ripgrep"),
+        Cargo(name: "ru", git: Some("https://github.com/wizzymore/ru")),
         Bash(name: "bun", command: "curl -fsSL https://bun.sh/install", binary: Some("bun")),
         Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh", directory: Some("$HOME/.oh-my-zsh"))
     ],
