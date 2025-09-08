@@ -18,6 +18,10 @@
 		/*"LSP-json",*/
 /*"Package Control",*/
 /*"LSP-css",*/
+/*"Package Control",*/
+/*"LSP",*/
+/*"LSP",*/
+/*"LSP",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
