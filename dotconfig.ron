@@ -13,6 +13,10 @@ DotConfig(
             to: String("$HOME/.zshrc")
         ),
         Location(
+            from: ".ideavimrc",
+            to: String("$HOME/.ideavimrc")
+        ),
+        Location(
             from: "zed",
             to: String("$UNIX_CONFIG/zed")
         ),
