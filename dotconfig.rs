@@ -6,7 +6,7 @@ use std::{
     fmt::{self, Debug},
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::{exit, Command},
 };
 
 #[derive(Debug, Deserialize)]
@@ -156,6 +156,16 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     });
 
     if meta.is_dir() {
+        if fs::exists(&to).is_err() {
+            if let Err(_) = fs::create_dir_all(&to) {
+                error(format!(
+                    "Could not create the target directory: {}",
+                    to.as_ref().display()
+                ));
+            };
+            return;
+        }
+
         let files = fs::read_dir(&from).expect("Could not open fonts directory");
         for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
             let target = to.as_ref().join(file.file_name());
@@ -186,16 +196,25 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 }
 
 fn main() {
-    let dot_config: DotConfig = ron::from_str(CONFIG_STRING).expect("Could not parse config file");
+    let dot_config: DotConfig = match ron::from_str(CONFIG_STRING) {
+        Ok(config) => config,
+        Err(e) => {
+            error(format!(
+                "Could not parse the config file: {} {}",
+                e.position, e.code
+            ));
+            exit(1);
+        }
+    };
 
     // Make sure the config directory exists
     {
         let config_dir = config_local_dir().expect("Could not get the config directory");
 
-        if let Err(e) = fs::create_dir(config_dir) {
+        if let Err(e) = fs::create_dir_all(config_dir) {
             if e.kind() != std::io::ErrorKind::AlreadyExists {
                 error(format!("Could not create the config directory: {}", e));
-                return;
+                exit(1);
             }
         }
     }
@@ -244,27 +263,44 @@ fn main() {
                 binary,
                 directory,
             } => {
+                let mut exists = false;
                 if let Some(binary) = binary {
                     if which::which(&binary).is_ok() {
-                        info(format!("Dependency {name} already installed, skipping"));
-                        continue;
+                        exists = true;
                     }
                 }
                 if let Some(directory) = directory {
                     let dir = PathBuf::from(format_path(directory));
                     if dir.exists() {
-                        info(format!("Dependency {name} already installed, skipping"));
-                        continue;
+                        exists = true;
                     }
                 }
+                if exists {
+                    info(format!("Dependency {name} already installed, skipping"));
+                    continue;
+                }
                 info(format!("Running bash command: `{command}`"));
-                if let Err(e) = Command::new("bash")
+                match Command::new("bash")
                     .arg("-c")
-                    .arg(format!("{command} | bash"))
-                    .stdout(std::process::Stdio::inherit())
+                    .arg(&command)
+                    .stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
                     .status()
                 {
-                    error(format!("Could not run `{command}`: {e}"));
+                    Ok(status) => {
+                        if status.success() {
+                            info(format!("Successfully installed {name}"));
+                        } else {
+                            error(format!(
+                                "Command `{command}` failed with error status `{}`",
+                                status.code().unwrap_or(-1)
+                            ));
+                        }
+                    }
+                    Err(e) => {
+                        error(format!("Could not run `{command}`: {e}"));
+                    }
                 }
             }
         }

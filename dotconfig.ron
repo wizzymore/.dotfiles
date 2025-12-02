@@ -4,55 +4,55 @@ DotConfig(
         Cargo(name: "exa"),
         Cargo(name: "ripgrep"),
         Cargo(name: "ru"),
-        Bash(name: "bun", command: "curl -fsSL https://bun.sh/install", binary: Some("bun")),
-        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh", directory: Some("$HOME/.oh-my-zsh"))
+        Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
+        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash", directory: Some("$HOME/.oh-my-zsh")),
     ],
     symlinks: [
         Location(
-            from: "ZSH/zshrc",
+            from: "links/ZSH/zshrc",
             to: String("$HOME/.zshrc")
         ),
         Location(
-            from: ".ideavimrc",
+            from: "links/.ideavimrc",
             to: String("$HOME/.ideavimrc")
         ),
         Location(
-            from: "zed",
+            from: "links/zed",
             to: String("$UNIX_CONFIG/zed")
         ),
         Location(
-            from: "ghostty",
+            from: "links/ghostty",
             to: Os(
                 macos: "$CONFIG/com.mitchellh.ghostty",
                 linux: "$UNIX_CONFIG/ghostty",
             )
         ),
         Location(
-            from: "nvim",
+            from: "links/nvim",
             to: String("$UNIX_CONFIG/nvim")
         ),
         Location(
-            from: "Sublime/User",
+            from: "links/Sublime/User",
             to: Os(
                 macos: "$HOME/Library/Application Support/Sublime Text/Packages/User",
                 linux: "",
             )
         ),
         Location(
-            from: "Sublime/Installed Packages",
+            from: "links/Sublime/Installed Packages",
             to: Os(
                 macos: "$HOME/Library/Application Support/Sublime Text/Installed Packages",
                 linux: "",
             )
         ),
         Location(
-            from: "starship/starship.toml",
+            from: "links/starship/starship.toml",
             to: String("$UNIX_CONFIG/starship.toml"),
         )
     ],
     copies: [
         Location(
-            from: "fonts",
+            from: "links/fonts",
             to: Os(
                 macos: "$HOME/Library/Fonts",
                 linux: "$HOME/.local/.share/fonts"
