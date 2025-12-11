@@ -7,6 +7,7 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "icon_theme": "Catppuccin Mocha",
   "vim_mode": true,
   "ui_font_size": 15,
   "ui_font_family": "JetBrains Mono",
@@ -16,9 +17,9 @@
   "buffer_font_size": 15,
   "buffer_line_height": "standard",
   "theme": {
-    "mode": "system",
+    "mode": "dark",
     "light": "0x96f Theme",
-    "dark": "Gruvbox Dark Hard"
+    "dark": "JetBrains New Dark"
   },
   "lsp": {
     "clangd": {
@@ -28,6 +29,7 @@
     }
   },
   "inlay_hints": {
+    "show_value_hints": true,
     "show_type_hints": true,
     "enabled": true,
     "show_parameter_hints": true,
