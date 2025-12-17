@@ -24,6 +24,9 @@ if [[ `uname` == Darwin ]]; then
   # Herd injected PHP binary.
   export PATH="$HOME/Library/Application Support/Herd/bin/":$PATH
 
+  # Herd injected PHP 8.5 configuration.
+  export HERD_PHP_85_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/85/"
+
   # Herd injected PHP 8.4 configuration.
   export HERD_PHP_84_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/84/"
 
@@ -82,7 +85,3 @@ TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 
 # Let this be last
 eval "$(starship init zsh)"
-
-
-# Herd injected PHP 8.4 configuration.
-export HERD_PHP_84_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/84/"
