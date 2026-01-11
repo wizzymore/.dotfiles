@@ -72,11 +72,9 @@ fn format_location(loc: &Location) -> String {
 fn format_path(s: String) -> String {
     let home_dir = dirs::home_dir().expect("Could not find the home directory");
     let config_dir = config_local_dir().expect("Could not get the config directory");
-    let mut s = s;
-    s = s.replace("$UNIX_CONFIG", home_dir.join(".config").to_str().unwrap());
-    s = s.replace("$CONFIG", config_dir.to_str().unwrap());
-    s = s.replace("$HOME", home_dir.to_str().unwrap());
-    s
+    s.replace("$UNIX_CONFIG", home_dir.join(".config").to_str().unwrap())
+        .replace("$CONFIG", config_dir.to_str().unwrap())
+        .replace("$HOME", home_dir.to_str().unwrap())
 }
 
 fn info<T>(s: T)

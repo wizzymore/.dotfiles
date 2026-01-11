@@ -85,3 +85,7 @@ TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 
 # Let this be last
 eval "$(starship init zsh)"
+
+
+# Herd injected PHP 8.4 configuration.
+export HERD_PHP_84_INI_SCAN_DIR="/Users/cristianbilu/Library/Application Support/Herd/config/php/84/"
