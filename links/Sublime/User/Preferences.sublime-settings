@@ -22,6 +22,7 @@
 /*"LSP",*/
 /*"LSP",*/
 /*"LSP",*/
+/*"A File Icon",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
