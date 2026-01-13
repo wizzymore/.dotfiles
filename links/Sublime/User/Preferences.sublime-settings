@@ -1,5 +1,5 @@
 {
-	"color_scheme": "gruvbox (Dark) (Medium).sublime-color-scheme",
+	"color_scheme": "Catppuccin Frappe.sublime-color-scheme",
 	"auto_close_tags": true,
 	"rulers": [
 		[
@@ -23,6 +23,8 @@
 /*"LSP",*/
 /*"LSP",*/
 /*"A File Icon",*/
+/*"Catppuccin color schemes",*/
+/*"Catppuccin color schemes",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
@@ -36,7 +38,7 @@
 	"hardware_acceleration": "opengl",
 	"hide_new_tab_button": true,
 	"hide_tab_scrolling_buttons": true,
-	"theme": "Default Dark.sublime-theme",
+	"theme": "Adaptive.sublime-theme",
 	"highlight_line": true,
 	"caret_style": "solid",
 	"block_caret": true,
