@@ -66,6 +66,7 @@ alias vim="nvim"
 alias ls="exa"
 alias la="ls -la"
 alias grep="rg"
+alias cat="bat"
 
 if [[ `uname` == Darwin ]]; then
     MAX_MEMORY_UNITS=KB

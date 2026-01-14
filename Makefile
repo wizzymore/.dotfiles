@@ -1,7 +1,12 @@
 UNAME_S := $(shell uname -s)
 
 all:
-	cargo run --release
+	./bin/dotconfig
+
+install:
+	cargo build --release
+	mkdir -p ./bin
+	cp ./target/release/dotconfig ./bin
 	cargo clean
 
 setup:

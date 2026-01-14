@@ -56,8 +56,6 @@ struct DotConfig {
     dependencies: Vec<Dependency>,
 }
 
-static CONFIG_STRING: &str = include_str!("dotconfig.ron");
-
 fn format_location(loc: &Location) -> String {
     let s = match &loc.to {
         OsOrString::String(s) => s.clone(),
@@ -194,7 +192,9 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 }
 
 fn main() {
-    let dot_config: DotConfig = match ron::from_str(CONFIG_STRING) {
+    let config_file = fs::read_to_string("dotconfig.ron")
+        .expect("You must run this program from the directory containing dotconfig.ron");
+    let dot_config: DotConfig = match ron::from_str(&config_file) {
         Ok(config) => config,
         Err(e) => {
             error(format!(
