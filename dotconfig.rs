@@ -89,6 +89,19 @@ where
     println!("{}\t{}", " ERROR ".bright_red().bold(), s.as_ref())
 }
 
+fn error_help<T>(s: T, help: T)
+where
+    T: AsRef<str>,
+{
+    println!(
+        "{}\t{}\n{}\t{}",
+        " ERROR ".bright_red().bold(),
+        s.as_ref(),
+        " HELP ".bright_blue().bold(),
+        help.as_ref()
+    )
+}
+
 fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     let to = to.as_ref();
     let from_abs = current_dir().unwrap().join(&from);
@@ -144,12 +157,13 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 }
 
 fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
-    let meta = fs::symlink_metadata(&from).unwrap_or_else(|_| {
-        panic!(
+    let Ok(meta) = fs::symlink_metadata(&from) else {
+        error(format!(
             "Could not get metadata of copy from {}",
             from.as_ref().display()
-        )
-    });
+        ));
+        exit(1);
+    };
 
     if meta.is_dir() {
         if fs::exists(&to).is_err() {
@@ -162,7 +176,13 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
             return;
         }
 
-        let files = fs::read_dir(&from).expect("Could not open fonts directory");
+        let Ok(files) = fs::read_dir(&from) else {
+            error(format!(
+                "Could not read directory: {}",
+                from.as_ref().display()
+            ));
+            return;
+        };
         for file in files.flatten().filter(|file| Path::is_file(&file.path())) {
             let target = to.as_ref().join(file.file_name());
             if let Err(e) = fs::copy(file.path(), &target) {
@@ -192,14 +212,19 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 }
 
 fn main() {
-    let config_file = fs::read_to_string("dotconfig.ron")
-        .expect("You must run this program from the directory containing dotconfig.ron");
+    let Ok(config_file) = fs::read_to_string("dotconfig.ron") else {
+        error_help(
+            "Could not find dotconfig.ron.",
+            "Make sure you run dotconfig from the folder where dotconfig.ron is present.",
+        );
+        exit(1);
+    };
     let dot_config: DotConfig = match ron::from_str(&config_file) {
         Ok(config) => config,
         Err(e) => {
             error(format!(
                 "Could not parse the config file: {} {}",
-                e.position, e.code
+                e.span, e.code
             ));
             exit(1);
         }

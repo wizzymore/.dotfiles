@@ -1,13 +1,13 @@
 [package]
 name = "dotconfig"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 colored = "3.0.0"
 dirs = "6.0.0"
 serde = { version = "1.0", features = ["derive"] }
-ron = "0.8"
+ron = "0.12"
 which = "8.0.0"
 
 [[bin]]
@@ -18,9 +18,9 @@ path = "dotconfig.rs"
 # We could then use the `#[optimize(speed)]` attribute for spot optimizations.
 # Unfortunately, that attribute currently doesn't work on intrinsics such as memset.
 [profile.release]
-lto = true      # reduces binary size
+lto = true # reduces binary size
 panic = "abort" # reduces binary size
-split-debuginfo = "packed"  # generates a separate *.dwp/*.dSYM so the binary can get stripped
-strip = "symbols"           # See split-debuginfo - allows us to drop the binary size
+split-debuginfo = "packed" # generates a separate *.dwp/*.dSYM so the binary can get stripped
+strip = "symbols" # See split-debuginfo - allows us to drop the binary size
 opt-level = "z" # reduces binary size to under 1MB
-incremental = true          # Improves re-compile times
+incremental = true # Improves re-compile times

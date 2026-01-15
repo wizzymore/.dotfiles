@@ -1,6 +1,10 @@
 {
 	"bootstrapped": true,
 	"in_process_packages": [
+		"LSP-gopls",
+		"LSP-rust-analyzer",
+		"LSP-svelte",
+		"LSP-typescript",
 	],
 	"installed_packages": [
 		"A File Icon",

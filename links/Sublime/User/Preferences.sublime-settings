@@ -25,6 +25,11 @@
 /*"A File Icon",*/
 /*"Catppuccin color schemes",*/
 /*"Catppuccin color schemes",*/
+/*"LSP-gopls",*/
+		"LSP-gopls",
+		"LSP-rust-analyzer",
+		"LSP-svelte",
+		"LSP-typescript",
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
@@ -32,7 +37,7 @@
 	"relative_line_numbers": true,
 	"goto_anything_exclude_gitignore": true,
 	"index_exclude_gitignore": false,
-	"index_files": true,
+	"index_files": false,
 	"font_size": 15,
 	"show_encoding": true,
 	"hardware_acceleration": "opengl",
