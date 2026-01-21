@@ -56,7 +56,7 @@ DotConfig(
             from: "links/fonts",
             to: Os(
                 macos: "$HOME/Library/Fonts",
-                linux: "$HOME/.local/.share/fonts"
+                linux: "$HOME/.local/share/fonts"
             )
         )
     ]
