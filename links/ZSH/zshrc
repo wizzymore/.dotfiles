@@ -45,11 +45,6 @@ if [[ `uname` == Darwin ]]; then
   export LDFLAGS="-L/opt/homebrew/lib"
   export CPPFLAGS="-I/opt/homebrew/include"
 
-  # Ruby
-  export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
-  export LDFLAGS="-L/opt/homebrew/opt/ruby/lib"
-  export CPPFLAGS="-I/opt/homebrew/opt/ruby/include"
-
   # Composer
   export PATH="$HOME/.composer/vendor/bin:$PATH"
 else
