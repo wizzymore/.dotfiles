@@ -1,5 +1,4 @@
-font-family = Departure Mono
-font-size = 13
-theme = Catppuccin Frappe
-#theme = Gruvbox Light Hard
-#theme = Github Light Default
+font-family = GeistMono Nerd Font
+font-size = 14
+theme = Gruvbox Dark Hard
+font-thicken = true
