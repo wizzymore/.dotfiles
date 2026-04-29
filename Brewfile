@@ -1,4 +1,3 @@
-tap "homebrew/services"
 brew "cmake"
 brew "fastfetch"
 brew "freetype"
@@ -9,7 +8,7 @@ brew "lazygit"
 brew "sqlite"
 brew "python@3.14"
 brew "llvm"
-brew "mailhog", restart_service: :changed
+brew "mailpit", restart_service: :changed
 brew "neovim"
 brew "zig"
 cask "ghostty"
