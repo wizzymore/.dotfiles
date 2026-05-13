@@ -1,6 +1,4 @@
-font-family = Jetbrains Mono
+font-family = JetBrainsMono Nerd Font
 font-size = 12
-theme = Gruvbox Dark Hard
+theme = Bright Lights
 font-thicken = true
-background-opacity = 0.7
-background-blur = 20
