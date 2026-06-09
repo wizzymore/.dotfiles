@@ -1,25 +1,36 @@
 use colored::Colorize;
-use dirs::config_local_dir;
 use serde::Deserialize;
 use std::{
     env::current_dir,
     fmt::{self, Debug},
-    fs,
-    path::{Path, PathBuf},
-    process::{exit, Command},
+    fs, panic,
+    path::Path,
+    process::{Command, exit},
 };
 
 #[derive(Debug, Deserialize)]
 enum OsOrString {
-    Os { macos: String, linux: String },
+    Os {
+        macos: String,
+        linux: String,
+        windows: String,
+    },
     String(String),
 }
 
 impl fmt::Display for OsOrString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OsOrString::Os { macos, linux } => {
-                write!(f, "macOS: {}, Linux: {}", macos, linux)
+            OsOrString::Os {
+                macos,
+                linux,
+                windows,
+            } => {
+                write!(
+                    f,
+                    "macOS: {}, Linux: {}, Windows: {}",
+                    macos, linux, windows
+                )
             }
             OsOrString::String(val) => write!(f, "{}", val),
         }
@@ -38,7 +49,10 @@ enum Dependency {
         name: String,
         #[serde(default)]
         git: Option<String>,
+        #[serde(default)]
+        windows: bool,
     },
+    #[allow(dead_code)]
     Bash {
         name: String,
         command: String,
@@ -60,19 +74,27 @@ fn format_location(loc: &Location) -> String {
     let s = match &loc.to {
         OsOrString::String(s) => s.clone(),
         #[cfg(target_os = "macos")]
-        OsOrString::Os { macos, linux: _ } => macos.clone(),
+        OsOrString::Os { macos, .. } => macos.clone(),
         #[cfg(target_os = "linux")]
-        OsOrString::Os { macos: _, linux } => linux.clone(),
+        OsOrString::Os { linux, .. } => linux.clone(),
+        #[cfg(target_os = "windows")]
+        OsOrString::Os { windows, .. } => windows.clone(),
     };
     format_path(s)
 }
 
 fn format_path(s: String) -> String {
     let home_dir = dirs::home_dir().expect("Could not find the home directory");
-    let config_dir = config_local_dir().expect("Could not get the config directory");
-    s.replace("$UNIX_CONFIG", home_dir.join(".config").to_str().unwrap())
-        .replace("$CONFIG", config_dir.to_str().unwrap())
-        .replace("$HOME", home_dir.to_str().unwrap())
+    let config_dir = dirs::config_local_dir().expect("Could not get the config directory");
+    let data_dir = dirs::data_dir().expect("Could not get the data directory");
+    let data_local_dir = dirs::data_local_dir().expect("Could not get the local data directory");
+    let documents_dir = dirs::document_dir().expect("Could not get the document directory");
+    s.replace("%UNIX_CONFIG%", home_dir.join(".config").to_str().unwrap())
+        .replace("%CONFIG%", config_dir.to_str().unwrap())
+        .replace("%HOME%", home_dir.to_str().unwrap())
+        .replace("%DATA%", data_dir.to_str().unwrap())
+        .replace("%DATA_LOCAL%", data_local_dir.to_str().unwrap())
+        .replace("%DOCUMENTS%", documents_dir.to_str().unwrap())
 }
 
 fn info<T>(s: T)
@@ -120,43 +142,67 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         }
     }
 
-    if let Ok(m) = fs::symlink_metadata(to) {
-        if m.is_symlink() {
-            let target = fs::read_link(&to).expect("Could not read the symlink");
+    let from_meta = fs::metadata(&from).expect("Could not get metadata of the source file");
 
-            if target == from_abs {
-                info(
-                    format!(
-                        "Skipping {}\n\t {}: \t{}",
-                        from_abs.display(),
-                        "To".bright_blue(),
-                        to.display(),
-                    )
-                    .as_str(),
-                );
-                return;
+    match fs::symlink_metadata(to) {
+        Ok(m) => {
+            if m.is_symlink() {
+                let target = fs::read_link(&to).expect("Could not read the symlink");
+
+                if target == from_abs {
+                    info(
+                        format!(
+                            "Skipping {}\n\t {}: \t{}",
+                            from_abs.display(),
+                            "To".bright_blue(),
+                            to.display(),
+                        )
+                        .as_str(),
+                    );
+                    return;
+                }
+            }
+
+            if m.is_dir() {
+                fs::remove_dir_all(to).expect("could not delete the old configuration");
+            } else {
+                fs::remove_file(to).expect("could not delete the old configuration");
             }
         }
-
-        if m.is_dir() {
-            fs::remove_dir_all(to).expect("could not delete the old configuration");
-        } else {
-            fs::remove_file(to).expect("could not delete the old configuration");
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                fs::create_dir_all(&to).expect("Could not create dir structure");
+            }
         }
-    };
-
-    if std::os::unix::fs::symlink(&from_abs, &to).is_err() {
-        error(format!(
-            "could not create symlink from `{}` to `{}`",
-            from_abs.display(),
-            to.display()
-        ));
-        return;
     }
-    info(format!("Linked {}", from_abs.display()));
+
+    #[cfg(unix)]
+    let cond = std::os::unix::fs::symlink(&from_abs, &to);
+    #[cfg(windows)]
+    let cond = match from_meta.is_dir() {
+        true => std::os::windows::fs::symlink_dir(&from_abs, &to),
+        false => std::os::windows::fs::symlink_file(&from_abs, &to),
+    };
+    match cond {
+        Ok(_) => info(format!(
+            "Linked {}\n\t {}: \t{}",
+            &from_abs.display(),
+            "To".bright_blue(),
+            &to.display(),
+        )),
+        Err(e) => {
+            error(format!(
+                "could not create symlink from `{}` to `{}`",
+                from_abs.display(),
+                to.display()
+            ));
+            error(e.to_string());
+            std::process::exit(1);
+        }
+    }
 }
 
-fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
+fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     let Ok(meta) = fs::symlink_metadata(&from) else {
         error(format!(
             "Could not get metadata of copy from {}",
@@ -166,14 +212,17 @@ fn copy<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     };
 
     if meta.is_dir() {
-        if fs::exists(&to).is_err() {
-            if let Err(_) = fs::create_dir_all(&to) {
-                error(format!(
-                    "Could not create the target directory: {}",
-                    to.as_ref().display()
-                ));
-            };
-            return;
+        match fs::exists(&to) {
+            Ok(false) | Err(_) => {
+                if let Err(_) = fs::create_dir_all(&to) {
+                    error(format!(
+                        "Could not create the target directory: {}",
+                        to.as_ref().display()
+                    ));
+                }
+                return;
+            }
+            _ => (),
         }
 
         let Ok(files) = fs::read_dir(&from) else {
@@ -231,6 +280,7 @@ fn main() {
     };
 
     // Make sure the config directory exists
+    #[cfg(unix)]
     {
         let config_dir = config_local_dir().expect("Could not get the config directory");
 
@@ -262,7 +312,11 @@ fn main() {
 
     for dep in dot_config.dependencies {
         match dep {
-            Dependency::Cargo { name, git } => {
+            Dependency::Cargo { name, git, windows } => {
+                if !windows && cfg!(windows) {
+                    info(format!("Skipping cargo dep {name} on windows"));
+                    continue;
+                }
                 info(format!("Installing cargo dep {name}"));
                 let mut command = Command::new("cargo");
                 command.arg("install");
@@ -280,6 +334,7 @@ fn main() {
                     error(format!("Could not install cargo dep {name}: {e}"));
                 }
             }
+            #[cfg(unix)]
             Dependency::Bash {
                 name,
                 command,
@@ -293,7 +348,7 @@ fn main() {
                     }
                 }
                 if let Some(directory) = directory {
-                    let dir = PathBuf::from(format_path(directory));
+                    let dir = std::path::PathBuf::from(format_path(directory));
                     if dir.exists() {
                         exists = true;
                     }
@@ -326,6 +381,7 @@ fn main() {
                     }
                 }
             }
+            _ => {}
         }
     }
 }

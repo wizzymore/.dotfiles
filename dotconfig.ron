@@ -1,62 +1,90 @@
 DotConfig(
     dependencies: [
         Cargo(name: "starship"),
-        Cargo(name: "exa"),
+        Cargo(name: "exa", windows: false),
         Cargo(name: "ripgrep"),
         Cargo(name: "ru"),
-        Cargo(name: "bat"),
+        Cargo(name: "bat", windows: false),
         Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
-        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash", directory: Some("$HOME/.oh-my-zsh")),
+        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash", directory: Some("%HOME%/.oh-my-zsh")),
     ],
     symlinks: [
         Location(
             from: "links/ZSH/zshrc",
-            to: String("$HOME/.zshrc")
+            to: Os(
+                macos: "%HOME%/.zshrc",
+                linux: "%HOME%/.zshrc",
+                windows: ""
+            )
         ),
         Location(
             from: "links/.ideavimrc",
-            to: String("$HOME/.ideavimrc")
+            to: String("%HOME%/.ideavimrc")
         ),
         Location(
             from: "links/zed",
-            to: String("$UNIX_CONFIG/zed")
+            to: Os(
+                macos: "%UNIX_CONFIG%/zed",
+                linux: "%CONFIG%/zed",
+                windows: "%DATA%/Zed"
+            )
         ),
         Location(
             from: "links/ghostty",
             to: Os(
-                macos: "$CONFIG/com.mitchellh.ghostty",
-                linux: "$UNIX_CONFIG/ghostty",
+                macos: "%CONFIG%/com.mitchellh.ghostty",
+                linux: "%UNIX_CONFIG%/ghostty",
+                windows: ""
             )
         ),
         Location(
             from: "links/nvim",
-            to: String("$UNIX_CONFIG/nvim")
+            to: Os(
+                macos: "%UNIX_CONFIG%/nvim",
+                linux: "%CONFIG%/nvim",
+                windows: "%DATA_LOCAL%/nvim"
+            )
         ),
         Location(
             from: "links/Sublime/User",
             to: Os(
-                macos: "$HOME/Library/Application Support/Sublime Text/Packages/User",
+                macos: "%HOME%/Library/Application Support/Sublime Text/Packages/User",
                 linux: "",
+                windows: "",
             )
         ),
         Location(
             from: "links/Sublime/Installed Packages",
             to: Os(
-                macos: "$HOME/Library/Application Support/Sublime Text/Installed Packages",
+                macos: "%HOME%/Library/Application Support/Sublime Text/Installed Packages",
                 linux: "",
+                windows: "",
             )
         ),
         Location(
             from: "links/starship/starship.toml",
-            to: String("$UNIX_CONFIG/starship.toml"),
+            to: Os(
+                macos: "%UNIX_CONFIG%/starship.toml",
+                linux: "%CONFIG%/starship.toml",
+                windows: "%HOME%/starship.toml"
+            ),
         )
     ],
     copies: [
         Location(
+            from: "links/Powershell",
+            to: Os(
+                macos: "",
+                linux: "",
+                windows: "%DOCUMENTS%/Powershell"
+            )
+        ),
+        Location(
             from: "links/fonts",
             to: Os(
-                macos: "$HOME/Library/Fonts",
-                linux: "$HOME/.local/share/fonts"
+                macos: "%HOME%/Library/Fonts",
+                linux: "%HOME%/.local/share/fonts",
+                windows: "%DATA_LOCAL%/Microsoft/Windows/Fonts",
             )
         )
     ]

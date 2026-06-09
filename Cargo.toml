@@ -10,6 +10,9 @@ serde = { version = "1.0", features = ["derive"] }
 ron = "0.12"
 which = "8.0.0"
 
+[build-dependencies]
+embed-manifest = "1.5.0"
+
 [[bin]]
 name = "dotconfig"
 path = "dotconfig.rs"
@@ -24,3 +27,4 @@ split-debuginfo = "packed" # generates a separate *.dwp/*.dSYM so the binary can
 strip = "symbols" # See split-debuginfo - allows us to drop the binary size
 opt-level = "z" # reduces binary size to under 1MB
 incremental = true # Improves re-compile times
+
