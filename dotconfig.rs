@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::{
     env::current_dir,
     fmt::{self, Debug},
-    fs, panic,
+    fs,
     path::Path,
     process::{Command, exit},
 };
@@ -142,12 +142,10 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         }
     }
 
-    let from_meta = fs::metadata(&from).expect("Could not get metadata of the source file");
-
     match fs::symlink_metadata(to) {
         Ok(m) => {
             if m.is_symlink() {
-                let target = fs::read_link(&to).expect("Could not read the symlink");
+                let target = fs::read_link(to).expect("Could not read the symlink");
 
                 if target == from_abs {
                     info(
@@ -171,13 +169,15 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         }
         Err(e) => {
             if e.kind() == std::io::ErrorKind::NotFound {
-                fs::create_dir_all(&to).expect("Could not create dir structure");
+                fs::create_dir_all(to).expect("Could not create dir structure");
             }
         }
     }
 
     #[cfg(unix)]
-    let cond = std::os::unix::fs::symlink(&from_abs, &to);
+    let cond = std::os::unix::fs::symlink(&from_abs, to);
+    #[cfg(windows)]
+    let from_meta = fs::metadata(&from).expect("Could not get metadata of the source file");
     #[cfg(windows)]
     let cond = match from_meta.is_dir() {
         true => std::os::windows::fs::symlink_dir(&from_abs, &to),
@@ -214,7 +214,7 @@ fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     if meta.is_dir() {
         match fs::exists(&to) {
             Ok(false) | Err(_) => {
-                if let Err(_) = fs::create_dir_all(&to) {
+                if fs::create_dir_all(&to).is_err() {
                     error(format!(
                         "Could not create the target directory: {}",
                         to.as_ref().display()
@@ -282,13 +282,15 @@ fn main() {
     // Make sure the config directory exists
     #[cfg(unix)]
     {
-        let config_dir = config_local_dir().expect("Could not get the config directory");
+        let config_dir = dirs::home_dir()
+            .expect("Could not get the home directory")
+            .join(".config");
 
-        if let Err(e) = fs::create_dir_all(config_dir) {
-            if e.kind() != std::io::ErrorKind::AlreadyExists {
-                error(format!("Could not create the config directory: {}", e));
-                exit(1);
-            }
+        if let Err(e) = fs::create_dir_all(config_dir)
+            && e.kind() != std::io::ErrorKind::AlreadyExists
+        {
+            error(format!("Could not create the config directory: {}", e));
+            exit(1);
         }
     }
 
@@ -334,18 +336,21 @@ fn main() {
                     error(format!("Could not install cargo dep {name}: {e}"));
                 }
             }
-            #[cfg(unix)]
             Dependency::Bash {
                 name,
                 command,
                 binary,
                 directory,
             } => {
+                if cfg!(windows) {
+                    return;
+                }
+
                 let mut exists = false;
-                if let Some(binary) = binary {
-                    if which::which(&binary).is_ok() {
-                        exists = true;
-                    }
+                if let Some(binary) = binary
+                    && which::which(&binary).is_ok()
+                {
+                    exists = true;
                 }
                 if let Some(directory) = directory {
                     let dir = std::path::PathBuf::from(format_path(directory));
@@ -381,7 +386,6 @@ fn main() {
                     }
                 }
             }
-            _ => {}
         }
     }
 }
