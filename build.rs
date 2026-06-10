@@ -1,7 +1,8 @@
-use embed_manifest::{embed_manifest, new_manifest};
-
 fn main() {
+    #[cfg(windows)]
     if std::env::var_os("CARGO_CFG_WINDOWS").is_some() {
+        use embed_manifest::{embed_manifest, new_manifest};
+
         let manifest = new_manifest("Dotconfig")
             .requested_execution_level(embed_manifest::manifest::ExecutionLevel::HighestAvailable);
         embed_manifest(manifest).expect("unable to embed manifest");

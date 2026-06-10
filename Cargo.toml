@@ -10,7 +10,7 @@ serde = { version = "1.0", features = ["derive"] }
 ron = "0.12"
 which = "8.0.0"
 
-[build-dependencies]
+[target.'cfg(windows)'.build-dependencies]
 embed-manifest = "1.5.0"
 
 [[bin]]
