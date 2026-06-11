@@ -43,13 +43,17 @@ struct Location {
     to: OsOrString,
 }
 
+fn yes() -> bool {
+    true
+}
+
 #[derive(Debug, Deserialize)]
 enum Dependency {
     Cargo {
         name: String,
         #[serde(default)]
         git: Option<String>,
-        #[serde(default)]
+        #[serde(default = "yes")]
         windows: bool,
     },
     #[allow(dead_code)]
@@ -142,7 +146,7 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
         }
     }
 
-    match fs::symlink_metadata(to) {
+    match fs::metadata(to) {
         Ok(m) => {
             if m.is_symlink() {
                 let target = fs::read_link(to).expect("Could not read the symlink");
@@ -162,9 +166,9 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
             }
 
             if m.is_dir() {
-                fs::remove_dir_all(to).expect("could not delete the old configuration");
+                fs::remove_dir_all(to).expect("could not delete the old configuration folder");
             } else {
-                fs::remove_file(to).expect("could not delete the old configuration");
+                fs::remove_file(to).expect("could not delete the old configuration file");
             }
         }
         Err(e) => {
@@ -329,8 +333,9 @@ fn main() {
                 }
                 if let Err(e) = command
                     // Print to the same stdout/stderr as this program
-                    .stdin(std::process::Stdio::inherit())
+                    .stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::inherit())
+                    .stderr(std::process::Stdio::inherit())
                     .status()
                 {
                     error(format!("Could not install cargo dep {name}: {e}"));
@@ -343,7 +348,7 @@ fn main() {
                 directory,
             } => {
                 if cfg!(windows) {
-                    return;
+                    continue;
                 }
 
                 let mut exists = false;
@@ -387,5 +392,12 @@ fn main() {
                 }
             }
         }
+    }
+
+    #[cfg(windows)]
+    {
+        println!("Press any key to exit the program...");
+        use std::io::Read;
+        std::io::stdin().read(&mut [0; 1]).unwrap();
     }
 }
