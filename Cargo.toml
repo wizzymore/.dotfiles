@@ -27,9 +27,3 @@ split-debuginfo = "packed" # generates a separate *.dwp/*.dSYM so the binary can
 strip = "symbols" # See split-debuginfo - allows us to drop the binary size
 opt-level = "z" # reduces binary size to under 1MB
 incremental = true # Improves re-compile times
-
-[source.crates-io]
-replace-with = "vendored-sources"
-
-[source.vendored-sources]
-directory = "vendor"
