@@ -4,6 +4,7 @@ use std::{
     env::current_dir,
     fmt::{self, Debug},
     fs,
+    io::{Write, stdout},
     path::Path,
     process::{Command, exit},
 };
@@ -130,64 +131,94 @@ where
 
 fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     let to = to.as_ref();
-    let from_abs = current_dir().unwrap().join(&from);
+    let from = from.as_ref();
+
+    let from_abs = current_dir().unwrap().join(from);
+
     if !from_abs.exists() && !to.exists() {
+        error("Neither source or destination locations exists!");
+        error(format!("FROM: {}", from_abs.display()));
+        error(format!("TO: {}", to.display()));
+        info("---SKIPPING---");
         return;
     }
+
     if !from_abs.exists() {
-        info(format!("Folder not setup, copying over {}", from_abs.display()).as_str());
-        if fs::rename(to, &from_abs).is_err() {
+        info(format!(
+            "Source not setup, copying over {}",
+            from_abs.display()
+        ));
+        if let Err(e) = fs::rename(to, &from_abs) {
             error(format!(
                 "Could not move the {} folder to {}",
                 to.display(),
                 from_abs.display()
             ));
+            error(e.to_string());
             return;
         }
     }
 
-    match fs::metadata(to) {
-        Ok(m) => {
-            if m.is_symlink() {
-                let target = fs::read_link(to).expect("Could not read the symlink");
-
-                if target == from_abs {
-                    info(
-                        format!(
+    if to.exists() {
+        match fs::metadata(to) {
+            Ok(m) => {
+                if m.is_symlink() {
+                    if fs::read_link(to).map_or(false, |t| t == from_abs) {
+                        info(format!(
                             "Skipping {}\n\t {}: \t{}",
                             from_abs.display(),
                             "To".bright_blue(),
                             to.display(),
-                        )
-                        .as_str(),
-                    );
-                    return;
+                        ));
+                        return;
+                    }
+                }
+
+                if m.is_dir() {
+                    if let Err(e) = fs::remove_dir_all(to) {
+                        error(format!("Could not delete old directory {}", to.display()));
+                        error(e.to_string());
+                        return;
+                    }
+                } else {
+                    if let Err(e) = fs::remove_file(to) {
+                        error(format!("Could not delete old file {}", to.display()));
+                        error(e.to_string());
+                        return;
+                    }
                 }
             }
-
-            if m.is_dir() {
-                fs::remove_dir_all(to).expect("could not delete the old configuration folder");
-            } else {
-                fs::remove_file(to).expect("could not delete the old configuration file");
-            }
-        }
-        Err(e) => {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                fs::create_dir_all(to).expect("Could not create dir structure");
+            Err(e) => {
+                error(format!("Unexpected error checking {}: {}", to.display(), e));
             }
         }
     }
 
+    if let Some(parent) = to.parent() {
+        if let Err(e) = fs::create_dir_all(parent) {
+            error(format!(
+                "Could not create parent directories for {}",
+                to.display()
+            ));
+            error(e.to_string());
+            return;
+        }
+    }
+
     #[cfg(unix)]
-    let cond = std::os::unix::fs::symlink(&from_abs, to);
+    let result = std::os::unix::fs::symlink(&from_abs, to);
+
     #[cfg(windows)]
-    let from_meta = fs::metadata(&from).expect("Could not get metadata of the source file");
-    #[cfg(windows)]
-    let cond = match from_meta.is_dir() {
-        true => std::os::windows::fs::symlink_dir(&from_abs, &to),
-        false => std::os::windows::fs::symlink_file(&from_abs, &to),
+    let result = {
+        let meta = fs::metadata(&from).expect("Could not get metadata of the source file");
+        if meta.is_dir() {
+            std::os::windows::fs::symlink_dir(&from_abs, &to)
+        } else {
+            std::os::windows::fs::symlink_file(&from_abs, &to)
+        }
     };
-    match cond {
+
+    match result {
         Ok(_) => info(format!(
             "Linked {}\n\t {}: \t{}",
             &from_abs.display(),
@@ -201,7 +232,7 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
                 to.display()
             ));
             error(e.to_string());
-            std::process::exit(1);
+            return;
         }
     }
 }
@@ -373,17 +404,21 @@ fn main() {
                     .arg(&command)
                     .stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .status()
+                    .stderr(std::process::Stdio::piped())
+                    .output()
                 {
-                    Ok(status) => {
-                        if status.success() {
+                    Ok(output) => {
+                        if output.status.success() {
                             info(format!("Successfully installed {name}"));
                         } else {
                             error(format!(
                                 "Command `{command}` failed with error status `{}`",
-                                status.code().unwrap_or(-1)
+                                output.status.code().unwrap_or(-1)
                             ));
+                            if !output.stderr.is_empty() {
+                                let err = String::from_utf8_lossy(&output.stderr);
+                                error(err);
+                            }
                         }
                     }
                     Err(e) => {
