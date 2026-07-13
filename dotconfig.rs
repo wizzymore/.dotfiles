@@ -4,8 +4,7 @@ use std::{
     env::current_dir,
     fmt::{self, Debug},
     fs,
-    io::{Write, stdout},
-    path::Path,
+    path::{Path, PathBuf},
     process::{Command, exit},
 };
 
@@ -57,7 +56,6 @@ enum Dependency {
         #[serde(default = "yes")]
         windows: bool,
     },
-    #[allow(dead_code)]
     Bash {
         name: String,
         command: String,
@@ -73,6 +71,10 @@ struct DotConfig {
     symlinks: Vec<Location>,
     copies: Vec<Location>,
     dependencies: Vec<Dependency>,
+}
+
+fn path_to_string(path: &Path) -> String {
+    path.to_string_lossy().into_owned()
 }
 
 fn format_location(loc: &Location) -> String {
@@ -94,12 +96,12 @@ fn format_path(s: String) -> String {
     let data_dir = dirs::data_dir().expect("Could not get the data directory");
     let data_local_dir = dirs::data_local_dir().expect("Could not get the local data directory");
     let documents_dir = dirs::document_dir().expect("Could not get the document directory");
-    s.replace("%UNIX_CONFIG%", home_dir.join(".config").to_str().unwrap())
-        .replace("%CONFIG%", config_dir.to_str().unwrap())
-        .replace("%HOME%", home_dir.to_str().unwrap())
-        .replace("%DATA%", data_dir.to_str().unwrap())
-        .replace("%DATA_LOCAL%", data_local_dir.to_str().unwrap())
-        .replace("%DOCUMENTS%", documents_dir.to_str().unwrap())
+    s.replace("%UNIX_CONFIG%", &path_to_string(&home_dir.join(".config")))
+        .replace("%CONFIG%", &path_to_string(&config_dir))
+        .replace("%HOME%", &path_to_string(&home_dir))
+        .replace("%DATA%", &path_to_string(&data_dir))
+        .replace("%DATA_LOCAL%", &path_to_string(&data_local_dir))
+        .replace("%DOCUMENTS%", &path_to_string(&documents_dir))
 }
 
 fn info<T>(s: T)
@@ -127,6 +129,27 @@ where
         " HELP ".bright_blue().bold(),
         help.as_ref()
     )
+}
+
+fn resolve_symlink_target(link: &Path) -> Option<PathBuf> {
+    let target = fs::read_link(link).ok()?;
+    if target.is_absolute() {
+        Some(target)
+    } else {
+        Some(link.parent().unwrap_or(Path::new(".")).join(target))
+    }
+}
+
+fn paths_equivalent(a: &Path, b: &Path) -> bool {
+    match (fs::canonicalize(a), fs::canonicalize(b)) {
+        (Ok(a), Ok(b)) => a == b,
+        _ => a == b,
+    }
+}
+
+fn symlink_points_to(link: &Path, target: &Path) -> bool {
+    resolve_symlink_target(link)
+        .is_some_and(|resolved| paths_equivalent(&resolved, target))
 }
 
 fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
@@ -160,10 +183,10 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
     }
 
     if to.exists() {
-        match fs::metadata(to) {
+        match fs::symlink_metadata(to) {
             Ok(m) => {
                 if m.is_symlink() {
-                    if fs::read_link(to).map_or(false, |t| t == from_abs) {
+                    if symlink_points_to(to, &from_abs) {
                         info(format!(
                             "Skipping {}\n\t {}: \t{}",
                             from_abs.display(),
@@ -172,37 +195,39 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
                         ));
                         return;
                     }
-                }
-
-                if m.is_dir() {
+                    if let Err(e) = fs::remove_file(to) {
+                        error(format!("Could not delete old symlink {}", to.display()));
+                        error(e.to_string());
+                        return;
+                    }
+                } else if m.is_dir() {
                     if let Err(e) = fs::remove_dir_all(to) {
                         error(format!("Could not delete old directory {}", to.display()));
                         error(e.to_string());
                         return;
                     }
-                } else {
-                    if let Err(e) = fs::remove_file(to) {
-                        error(format!("Could not delete old file {}", to.display()));
-                        error(e.to_string());
-                        return;
-                    }
+                } else if let Err(e) = fs::remove_file(to) {
+                    error(format!("Could not delete old file {}", to.display()));
+                    error(e.to_string());
+                    return;
                 }
             }
             Err(e) => {
                 error(format!("Unexpected error checking {}: {}", to.display(), e));
+                return;
             }
         }
     }
 
-    if let Some(parent) = to.parent() {
-        if let Err(e) = fs::create_dir_all(parent) {
-            error(format!(
-                "Could not create parent directories for {}",
-                to.display()
-            ));
-            error(e.to_string());
-            return;
-        }
+    if let Some(parent) = to.parent()
+        && let Err(e) = fs::create_dir_all(parent)
+    {
+        error(format!(
+            "Could not create parent directories for {}",
+            to.display()
+        ));
+        error(e.to_string());
+        return;
     }
 
     #[cfg(unix)]
@@ -210,7 +235,13 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
 
     #[cfg(windows)]
     let result = {
-        let meta = fs::metadata(&from).expect("Could not get metadata of the source file");
+        let Ok(meta) = fs::symlink_metadata(&from_abs) else {
+            error(format!(
+                "Could not get metadata of the source file {}",
+                from_abs.display()
+            ));
+            return;
+        };
         if meta.is_dir() {
             std::os::windows::fs::symlink_dir(&from_abs, &to)
         } else {
@@ -232,7 +263,6 @@ fn dot_link<T: AsRef<Path>, E: AsRef<Path>>(from: T, to: E) {
                 to.display()
             ));
             error(e.to_string());
-            return;
         }
     }
 }
@@ -249,13 +279,14 @@ fn copy(from: impl AsRef<Path>, to: impl AsRef<Path>) {
     if meta.is_dir() {
         match fs::exists(&to) {
             Ok(false) | Err(_) => {
-                if fs::create_dir_all(&to).is_err() {
+                if let Err(e) = fs::create_dir_all(&to) {
                     error(format!(
                         "Could not create the target directory: {}",
                         to.as_ref().display()
                     ));
+                    error(e.to_string());
+                    return;
                 }
-                return;
             }
             _ => (),
         }
