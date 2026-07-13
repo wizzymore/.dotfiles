@@ -6,7 +6,7 @@ DotConfig(
         Cargo(name: "ru"),
         Cargo(name: "bat"),
         Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
-        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash", directory: Some("%HOME%/.oh-my-zsh")),
+        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash", directory: Some("%HOME%/.oh-my-zsh")),
     ],
     symlinks: [
         Location(
