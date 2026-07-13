@@ -345,39 +345,6 @@ fn main() {
         }
     };
 
-    // Make sure the config directory exists
-    #[cfg(unix)]
-    {
-        let config_dir = dirs::home_dir()
-            .expect("Could not get the home directory")
-            .join(".config");
-
-        if let Err(e) = fs::create_dir_all(config_dir)
-            && e.kind() != std::io::ErrorKind::AlreadyExists
-        {
-            error(format!("Could not create the config directory: {}", e));
-            exit(1);
-        }
-    }
-
-    for symlink in dot_config.symlinks {
-        let to = format_location(&symlink);
-        if to.is_empty() {
-            continue;
-        }
-
-        dot_link(symlink.from, to);
-    }
-
-    for cpy in dot_config.copies {
-        let to = format_location(&cpy);
-        if to.is_empty() {
-            continue;
-        }
-
-        copy(cpy.from, to);
-    }
-
     for dep in dot_config.dependencies {
         match dep {
             Dependency::Cargo { name, git, windows } => {
@@ -458,6 +425,39 @@ fn main() {
                 }
             }
         }
+    }
+
+    // Make sure the config directory exists
+    #[cfg(unix)]
+    {
+        let config_dir = dirs::home_dir()
+            .expect("Could not get the home directory")
+            .join(".config");
+
+        if let Err(e) = fs::create_dir_all(config_dir)
+            && e.kind() != std::io::ErrorKind::AlreadyExists
+        {
+            error(format!("Could not create the config directory: {}", e));
+            exit(1);
+        }
+    }
+
+    for symlink in dot_config.symlinks {
+        let to = format_location(&symlink);
+        if to.is_empty() {
+            continue;
+        }
+
+        dot_link(symlink.from, to);
+    }
+
+    for cpy in dot_config.copies {
+        let to = format_location(&cpy);
+        if to.is_empty() {
+            continue;
+        }
+
+        copy(cpy.from, to);
     }
 
     #[cfg(windows)]
