@@ -39,7 +39,6 @@ if [[ `uname` == Darwin ]]; then
 
   # Herd injected NVM configuration
   export NVM_DIR="$HOME/Library/Application Support/Herd/config/nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
   [[ -f "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh" ]] && builtin source "/Applications/Herd.app/Contents/Resources/config/shell/zshrc.zsh"
 
@@ -51,11 +50,16 @@ if [[ `uname` == Darwin ]]; then
 
   export VCPKG_ROOT="$HOME/vcpkg"
   export PATH="$VCPKG_ROOT:$PATH"
+  export ODIN_ROOT=$HOME/src/odin/Odin
 else
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  export ODIN_ROOT=/usr/lib/odin
+  export NVM_DIR="$HOME/.nvm"
+  export PATH=~/.config/emacs/bin:$PATH
 fi
 
-export ODIN_ROOT=$HOME/src/odin/Odin
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 export PATH=$PATH:$ODIN_ROOT
 
 alias wip="git add .; git commit -m \"WIP\""
@@ -65,19 +69,13 @@ alias vim="nvim"
 alias ls="exa"
 alias la="ls -la"
 alias grep="rg"
-alias cat="bat"
-
-if [[ `uname` == Darwin ]]; then
-    MAX_MEMORY_UNITS=KB
-else
-    MAX_MEMORY_UNITS=MB
-fi
+alias ta="tmux a"
 
 TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 'avg shared (code):         %X KB'$'\n'\
 'avg unshared (data/stack): %D KB'$'\n'\
 'total (sum):               %K KB'$'\n'\
-'max memory:                %M '$MAX_MEMORY_UNITS''$'\n'\
+'max memory:                %M KB'$'\n'\
 'page faults from disk:     %F'$'\n'\
 'other page faults:         %R'
 
@@ -93,3 +91,6 @@ fi
 eval "$(starship init zsh)"
 
 export PATH="$HOME/.local/bin:$PATH"
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"

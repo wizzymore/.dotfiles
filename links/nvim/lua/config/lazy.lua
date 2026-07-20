@@ -16,16 +16,6 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    -- Gruvbox theme
-    {
-      "ellisonleao/gruvbox.nvim",
-      name = "gruvbox",
-      priority = 1000,
-      config = true,
-      opts = {
-        contrast = "dark",
-      },
-    },
     -- add LazyVim and import its plugins
     {
       "LazyVim/LazyVim",
@@ -34,6 +24,8 @@ require("lazy").setup({
         colorscheme = "gruvbox",
       },
     },
+    -- Add DAP Core
+    { import = "lazyvim.plugins.extras.dap.core" },
     -- import/override with your plugins
     { import = "plugins" },
   },
