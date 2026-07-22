@@ -87,6 +87,10 @@ if [[ `uname` == Linux ]]; then
   export PHP_INI_SCAN_DIR="/home/cristian/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
 fi
 
+if (( ${+WSLENV} )); then
+  alias ssh=ssh.exe
+fi
+
 # Let this be last
 eval "$(starship init zsh)"
 
