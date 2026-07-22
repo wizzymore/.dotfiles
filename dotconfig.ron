@@ -4,7 +4,7 @@ DotConfig(
         Cargo(name: "exa", windows: false),
         Cargo(name: "ripgrep"),
         Cargo(name: "ru"),
-        Cargo(name: "bat"),
+        Cargo(name: "cargo-update"),
         Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
         Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash", directory: Some("%HOME%/.oh-my-zsh")),
     ],
