@@ -9,6 +9,8 @@ return {
         "codelldb",
         "stylua",
         "gopls",
+        "intelephense",
+        "duster",
       },
     },
   },
