@@ -11,6 +11,7 @@ return {
         "gopls",
         "intelephense",
         "duster",
+        "pint",
       },
     },
   },
