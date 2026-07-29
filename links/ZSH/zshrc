@@ -22,6 +22,9 @@ if [[ `uname` == Darwin ]]; then
 
   export PATH="/usr/local/share/dotnet:$PATH"
 
+  # MacOS 27 beta crash fix for php
+  export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
   # Herd injected PHP binary.
   export PATH="$HOME/Library/Application Support/Herd/bin/":$PATH
 
@@ -42,10 +45,10 @@ if [[ `uname` == Darwin ]]; then
   export ODIN_ROOT=$HOME/src/odin/Odin
 else
   export ODIN_ROOT=/usr/lib/odin
-  export NVM_DIR="$HOME/.nvm"
   export PATH=~/.config/emacs/bin:$PATH
 fi
 
+export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
