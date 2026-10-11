@@ -25,15 +25,6 @@ if [[ `uname` == Darwin ]]; then
   # MacOS 27 beta crash fix for php
   export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-  # Herd injected PHP binary.
-  export PATH="$HOME/Library/Application Support/Herd/bin/":$PATH
-
-  # Herd injected PHP 8.5 configuration.
-  export HERD_PHP_85_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/85/"
-
-  # Herd injected PHP 8.4 configuration.
-  export HERD_PHP_84_INI_SCAN_DIR="$HOME/Library/Application Support/Herd/config/php/84/"
-
   export LDFLAGS="-L$(brew --prefix)/lib"
   export CPPFLAGS="-I$(brew --prefix)/include/"
 
@@ -43,6 +34,14 @@ if [[ `uname` == Darwin ]]; then
   export VCPKG_ROOT="$HOME/vcpkg"
   export PATH="$VCPKG_ROOT:$PATH"
   export ODIN_ROOT=$HOME/src/odin/Odin
+
+# >>> yerd PATH >>>
+case ":$PATH:" in
+  *":/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/bin:"*) ;;
+  *) export PATH="/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/bin:$PATH" ;;
+esac
+export PHPRC="/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/php-cli.ini"
+# <<< yerd PATH <<<
 else
   export ODIN_ROOT=/usr/lib/odin
   export PATH=~/.config/emacs/bin:$PATH
