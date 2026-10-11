@@ -5,6 +5,7 @@ DotConfig(
         Cargo(name: "ripgrep"),
         Cargo(name: "ru"),
         Cargo(name: "cargo-update"),
+        Bash(name: "codex", command: "curl -fsSL https://chatgpt.com/codex/install.sh | sh", binary: Some("codex")),
         Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
         Bash(name: "vite-plus", command: "curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=no VP_PNPM_MANAGER=yes bash", binary: Some("vp")),
         Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash", directory: Some("%HOME%/.oh-my-zsh")),
