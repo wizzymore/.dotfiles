@@ -3,11 +3,18 @@ return {
   opts = {
     formatters_by_ft = {
       php = { "pint" },
-      javascript = { "prettier" },
-      javascriptreact = { "prettier" },
-      typescript = { "prettier" },
-      typescriptreact = { "prettier" },
-      css = { "prettier" },
+      javascript = { "vp" },
+      javascriptreact = { "vp" },
+      typescript = { "vp" },
+      typescriptreact = { "vp" },
+      css = { "vp" },
+    },
+    formatters = {
+      vp = {
+        command = "vp",
+        args = { "fmt", "--stdin-filepath", "$FILENAME" },
+        stdin = true,
+      },
     },
   },
 }
