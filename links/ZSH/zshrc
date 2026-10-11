@@ -73,12 +73,6 @@ TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 
 . "$HOME/.cargo/env"
 
-if [[ `uname` == Linux ]]; then
-  # php.new
-  export PATH="/home/cristian/.config/herd-lite/bin:$PATH"
-  export PHP_INI_SCAN_DIR="/home/cristian/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
-fi
-
 if (( ${+WSLENV} )); then
   alias ssh=ssh.exe
 fi
