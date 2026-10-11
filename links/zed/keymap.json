@@ -9,14 +9,10 @@
   {
     "context": "Workspace",
     "bindings": {
-      // "shift shift": "file_finder::Toggle"
-      "super-t": "workspace::ToggleBottomDock"
     }
   },
   {
     "bindings": {
-      "super-[": "pane::GoBack",
-      "super-]": "pane::GoForward"
     }
   }
 ]

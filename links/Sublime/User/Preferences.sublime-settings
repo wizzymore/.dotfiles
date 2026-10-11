@@ -31,6 +31,9 @@
 /*"LSP-intelephense",*/
 /*"Package Control",*/
 /*"LSP",*/
+/*"MarkdownPreview",*/
+/*"Package Control",*/
+/*"A File Icon",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
