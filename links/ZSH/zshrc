@@ -37,14 +37,14 @@ if [[ `uname` == Darwin ]]; then
 
 # >>> yerd PATH >>>
 case ":$PATH:" in
-  *":/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/bin:"*) ;;
-  *) export PATH="/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/bin:$PATH" ;;
+  *":$HOME/Library/Application Support/io.yerd.Yerd/bin:"*) ;;
+  *) export PATH="$HOME/Library/Application Support/io.yerd.Yerd/bin:$PATH" ;;
 esac
-export PHPRC="/Users/cristianbilu/Library/Application Support/io.yerd.Yerd/php-cli.ini"
+export PHPRC="$HOME/Library/Application Support/io.yerd.Yerd/php-cli.ini"
 # <<< yerd PATH <<<
 else
   export ODIN_ROOT=/usr/lib/odin
-  export PATH=~/.config/emacs/bin:$PATH
+  export PATH="$HOME/.config/emacs/bin:$PATH"
 fi
 
 export PATH=$PATH:$ODIN_ROOT
