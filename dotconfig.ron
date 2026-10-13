@@ -56,14 +56,6 @@ DotConfig(
             )
         ),
         Location(
-            from: "links/Sublime/Installed Packages",
-            to: Os(
-                macos: "%HOME%/Library/Application Support/Sublime Text/Installed Packages",
-                linux: "",
-                windows: "",
-            )
-        ),
-        Location(
             from: "links/starship/starship.toml",
             to: Os(
                 macos: "%UNIX_CONFIG%/starship.toml",

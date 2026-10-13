@@ -1,7 +1,5 @@
 {
-	"bootstrapped": true,
-	"in_process_packages": [
-	],
+	"install_missing": true,
 	"installed_packages": [
 		"A File Icon",
 		"Catppuccin color schemes",

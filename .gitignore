@@ -8,3 +8,5 @@
 bin/
 
 vendor/
+links/Sublime/Installed Packages/
+__pycache__/
