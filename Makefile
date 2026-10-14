@@ -1,18 +1,7 @@
-UNAME_S := $(shell uname -s)
+.PHONY: all install
 
 all:
-	./bin/dotconfig
+	dotconfig
 
 install:
-	cargo build --release
-	mkdir -p ./bin
-	cp ./target/release/dotconfig ./bin
-	cargo clean
-
-setup:
-ifeq ($(UNAME_S),Linux)
-	rustup target add x86_64-unknown-linux-gnu
-endif
-ifeq ($(UNAME_S),Darwin)
-	rustup target add aarch64-apple-darwin
-endif
+	cargo install --path . --locked

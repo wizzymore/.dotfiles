@@ -5,15 +5,15 @@ description: Import an installed application's configuration into this user's do
 
 # Import application configuration
 
-Locate the dotfiles repository in the workspace or at `~/.dotfiles`, and read its `AGENTS.md`. The executable is `dotconfig`; the user may call it dotlink or dotfiles. Inspect `bin/dotconfig --help` and the source before assuming a stale binary supports the current behavior. Build with `make install` when necessary. `make` applies the entire configuration and is not needed for a single import.
+Locate the dotfiles repository in the workspace or at `~/.dotfiles`, and read its `AGENTS.md`. The executable is `dotconfig`; the user may call it dotlink or dotfiles. Inspect `dotconfig --help` and the source before assuming a stale binary supports the current behavior. Build with `make install` when necessary. `make` applies the entire configuration and is not needed for a single import.
 
 Find the application's actual config locally and consult its official documentation when paths, formats, or layers are uncertain. Distinguish curated settings, GUI overrides, plugins, and runtime state. Use a supported merged export when it is needed to capture the user's settings; do not import caches or runtime history just because they sit beside settings. For Noctalia, read [references/noctalia.md](references/noctalia.md).
 
 Use the installed tool for the move and registration:
 
 ```sh
-./bin/dotconfig link /absolute/path/to/app-config --dry-run
-./bin/dotconfig link /absolute/path/to/app-config
+dotconfig link /absolute/path/to/app-config --dry-run
+dotconfig link /absolute/path/to/app-config
 ```
 
 Review the preview before applying the import within the user's authorized scope. If the binary needs another config, put `--config /path/to/dotconfig.ron` before `link`.

@@ -10,11 +10,12 @@ Install Rust with support for edition 2024, then run:
 
 ```sh
 make install
-./bin/dotconfig --dry-run
+dotconfig --dry-run
 ```
 
-`make install` builds the release binary, copies it to `bin/dotconfig`, and
-cleans Cargo build output.
+`make install` runs `cargo install --path . --locked`, building the release
+binary and installing it into Cargo's bin directory (normally `~/.cargo/bin`).
+Ensure that directory is on your `PATH`.
 
 Dry-run lists dependency commands, links, copies, and backups without executing
 installers or changing files. It checks configuration paths, but cannot predict
@@ -38,7 +39,7 @@ To move one local directory into this repository's `links/` directory and
 symlink it back to its original location, run:
 
 ```sh
-./bin/dotconfig link /path/to/directory
+dotconfig link /path/to/directory
 ```
 
 The directory's existing name is used under `links/`. The command also updates
@@ -59,13 +60,6 @@ those alias names are updated; `--dry-run` previews the `git config` commands.
 
 The optional `Brewfile` lists additional macOS tools and can be applied with
 `brew bundle`. Dotconfig installs its own configured dependencies on each run.
-
-## Codex skills
-
-Normal setup links the entire `links/skills/` directory to `~/.codex/skills/`
-on Linux and macOS. It contains the reusable `dotconfig-import-config` and
-`dotconfig-maintenance` skills. Edit or add skills in the repository directory.
-Codex's generated `.system/` skills stay local and are excluded from Git tracking.
 
 ## Backups and recovery
 

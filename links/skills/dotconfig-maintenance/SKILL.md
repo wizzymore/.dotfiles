@@ -5,7 +5,7 @@ description: Maintain this user's Rust dotconfig installer, CLI, RON schema, and
 
 # Maintain dotconfig
 
-Read repository `AGENTS.md` and inspect `dotconfig.rs`, `dotconfig.ron`, `Cargo.toml`, `Makefile`, and the relevant README sections. Installer code and unit tests share `dotconfig.rs`. Build with `make install`, which copies the release binary to `bin/dotconfig` and cleans Cargo output. `make` runs normal setup and can execute dependency commands and write machine configuration. Use the single-directory subcommand when the task is a single import.
+Read repository `AGENTS.md` and inspect `dotconfig.rs`, `dotconfig.ron`, `Cargo.toml`, `Makefile`, and the relevant README sections. Installer code and unit tests share `dotconfig.rs`. Build with `make install`, which runs `cargo install --path . --locked` and installs the release binary into Cargo's bin directory (normally `~/.cargo/bin`). `make` runs normal setup and can execute dependency commands and write machine configuration. Use the single-directory subcommand when the task is a single import.
 
 Preserve these behaviors when extending the installer:
 
@@ -19,6 +19,6 @@ Preserve these behaviors when extending the installer:
 
 Add focused tests for behavior affected by the change, using temporary directories and injected home paths instead of modifying the real home or global Git config. Useful cases include unchanged dry-runs, current-OS defaults, preserved directory contents, conflict rejection, symlink escapes, reruns, and rollback. For path embedding, test a relocated binary from a different working directory using a dry-run and a separate explicit config override.
 
-Run the repository's required Rust tests, formatting, and Clippy checks when changing installer logic. Rebuild `bin/dotconfig` when the user will run the new behavior. Update README examples to use `make install` for builds, `make` for normal setup, and `./bin/dotconfig` for commands needing arguments.
+Run the repository's required Rust tests, formatting, and Clippy checks when changing installer logic. Reinstall `dotconfig` with `make install` when the user will run the new behavior. Update README examples to use `make install` for builds, `make` for normal setup, and `dotconfig` for commands needing arguments.
 
 If commits are requested, group changes by coherent features, include their tests and documentation, and keep imported application files with their RON entry. Review pre-existing edits before staging. Do not commit unrelated application changes or apply full setup merely to validate a CLI feature.
