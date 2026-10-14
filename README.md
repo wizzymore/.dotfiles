@@ -27,6 +27,25 @@ Use `--config /absolute/path/to/dotconfig.ron` to run from another directory.
 Source paths are relative to the configuration file. Missing sources are errors;
 the installer does not import existing machine configuration into the repository.
 
+To move one local directory into this repository's `links/` directory and
+symlink it back to its original location, run:
+
+```sh
+./target/debug/dotconfig link /path/to/directory
+```
+
+The directory's existing name is used under `links/`. The command also updates
+`dotconfig.ron` with a symlink entry for the current OS; other OS destinations
+are left empty for new entries. Only directories below your home directory are
+accepted, including when resolving symlinks in parent directories. The most
+specific supported placeholder is used: for example, `~/src/test` becomes
+`%HOME%/src/test`, and `~/.config/test` becomes `%CONFIG%/test` on Linux.
+Data and documents directories use their corresponding placeholders.
+It rewrites the config with standard RON formatting;
+comments are not preserved. Use `--dry-run` to preview without changing files.
+Name or destination conflicts are rejected. Rerunning the command on an existing
+symlink into `links/` registers it without moving its contents again.
+
 The optional `Brewfile` lists additional macOS tools and can be applied with
 `brew bundle`. Dotconfig installs its own configured dependencies on each run.
 

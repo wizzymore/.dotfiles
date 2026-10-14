@@ -1,6 +1,6 @@
 use clap::Parser;
 use colored::Colorize;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
     fmt::{self, Debug},
     fs,
@@ -8,7 +8,7 @@ use std::{
     process::{Command, ExitCode, Stdio},
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 enum OsOrString {
     Os {
         macos: String,
@@ -37,7 +37,7 @@ impl fmt::Display for OsOrString {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Location {
     from: String,
     to: OsOrString,
@@ -47,7 +47,7 @@ fn yes() -> bool {
     true
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 enum Dependency {
     Cargo {
         name: String,
@@ -66,7 +66,7 @@ enum Dependency {
     },
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct DotConfig {
     symlinks: Vec<Location>,
     copies: Vec<Location>,
@@ -85,8 +85,21 @@ struct Args {
     config: PathBuf,
 
     /// Preview actions without installing dependencies or changing files.
-    #[arg(long)]
+    #[arg(long, global = true)]
     dry_run: bool,
+
+    /// Run a specific operation instead of installing the full configuration.
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum Commands {
+    /// Move a local directory into links/ and link it back to its original path.
+    Link {
+        /// Directory to move and link.
+        directory: PathBuf,
+    },
 }
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -240,6 +253,267 @@ fn dot_link(from: &Path, to: &Path, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+fn portable_destination(path: &Path, home: &Path) -> Result<String> {
+    destination_with_bases(
+        path,
+        &[
+            ("%CONFIG%", dirs::config_local_dir()),
+            ("%DATA%", dirs::data_dir()),
+            ("%DATA_LOCAL%", dirs::data_local_dir()),
+            ("%DOCUMENTS%", dirs::document_dir()),
+            ("%UNIX_CONFIG%", Some(home.join(".config"))),
+            ("%HOME%", Some(home.to_owned())),
+        ],
+    )
+}
+
+fn destination_with_bases(path: &Path, bases: &[(&str, Option<PathBuf>)]) -> Result<String> {
+    let mut best: Option<(&str, PathBuf, usize)> = None;
+    for (token, base) in bases {
+        if let Some(base) = base {
+            let resolved = fs::canonicalize(base).unwrap_or_else(|_| base.clone());
+            if let Ok(relative) = path.strip_prefix(&resolved) {
+                let depth = resolved.components().count();
+                if best
+                    .as_ref()
+                    .is_none_or(|(_, _, previous)| depth > *previous)
+                {
+                    best = Some((token, relative.to_owned(), depth));
+                }
+            }
+        }
+    }
+    let (token, relative, _) = best.ok_or("Directory has no supported path placeholder")?;
+    let relative = relative
+        .to_str()
+        .ok_or("Directory path is not valid UTF-8")?;
+    if relative.is_empty() {
+        return Ok(token.to_owned());
+    }
+    Ok(format!("{token}/{}", relative.replace('\\', "/")))
+}
+
+fn register_link(
+    config: &mut DotConfig,
+    from: &str,
+    destination: &Path,
+    home: &Path,
+) -> Result<()> {
+    for location in config.symlinks.iter().chain(&config.copies) {
+        let existing = format_location(location)?;
+        if !existing.is_empty() && Path::new(&existing) == destination && location.from != from {
+            return Err(
+                format!("Destination already configured: {}", destination.display()).into(),
+            );
+        }
+    }
+    if config.copies.iter().any(|location| location.from == from) {
+        return Err(format!("{from} is already configured as a copy").into());
+    }
+    let destination = portable_destination(destination, home)?;
+    if let Some(location) = config
+        .symlinks
+        .iter_mut()
+        .find(|location| location.from == from)
+    {
+        match &mut location.to {
+            OsOrString::String(existing) => {
+                if format_path(existing.clone())? != format_path(destination.clone())? {
+                    return Err(format!("{from} already has a different destination").into());
+                }
+            }
+            OsOrString::Os {
+                macos,
+                linux,
+                windows,
+            } => {
+                let existing = if cfg!(target_os = "macos") {
+                    macos
+                } else if cfg!(target_os = "linux") {
+                    linux
+                } else {
+                    windows
+                };
+                if !existing.is_empty()
+                    && format_path(existing.clone())? != format_path(destination.clone())?
+                {
+                    return Err(format!("{from} already has a different destination").into());
+                }
+                *existing = destination;
+            }
+        }
+    } else {
+        config.symlinks.push(Location {
+            from: from.to_owned(),
+            to: OsOrString::Os {
+                macos: if cfg!(target_os = "macos") {
+                    destination.clone()
+                } else {
+                    String::new()
+                },
+                linux: if cfg!(target_os = "linux") {
+                    destination.clone()
+                } else {
+                    String::new()
+                },
+                windows: if cfg!(target_os = "windows") {
+                    destination
+                } else {
+                    String::new()
+                },
+            },
+        });
+    }
+    Ok(())
+}
+
+fn link_directory(directory: &Path, config_path: &Path, dry_run: bool) -> Result<()> {
+    let home = dirs::home_dir().ok_or("Cannot resolve home directory")?;
+    link_directory_in_home(directory, config_path, dry_run, &home)
+}
+
+fn link_directory_in_home(
+    directory: &Path,
+    config_path: &Path,
+    dry_run: bool,
+    home: &Path,
+) -> Result<()> {
+    let home = fs::canonicalize(home)?;
+    let root = config_path
+        .parent()
+        .ok_or("Config has no parent directory")?;
+    let links_dir = root.join("links");
+    let directory = if directory.is_absolute() {
+        directory.to_owned()
+    } else {
+        std::env::current_dir()?.join(directory)
+    };
+    let directory: PathBuf = directory.components().collect();
+    let parent = fs::canonicalize(directory.parent().ok_or("Cannot link a filesystem root")?)?;
+    let source = parent.join(
+        directory
+            .file_name()
+            .ok_or("Cannot link a filesystem root")?,
+    );
+    if source == home || !source.starts_with(&home) {
+        return Err(format!(
+            "Only directories inside your home directory may be linked: {}",
+            source.display()
+        )
+        .into());
+    }
+    let input_meta = fs::symlink_metadata(&directory)
+        .map_err(|e| format!("Cannot inspect directory {}: {e}", source.display()))?;
+    let name = source.file_name().ok_or("Cannot link a filesystem root")?;
+    let stored = links_dir.join(name);
+    if source.starts_with(&links_dir) || links_dir.starts_with(&source) {
+        return Err(format!(
+            "{} overlaps the repository's links/ directory",
+            source.display()
+        )
+        .into());
+    }
+    let already_linked = input_meta.is_symlink()
+        && fs::canonicalize(&source)
+            .ok()
+            .is_some_and(|target| target == stored && target.is_dir());
+    if !already_linked && (!input_meta.is_dir() || input_meta.is_symlink()) {
+        return Err(format!(
+            "{} is not a directory or a link to {}",
+            source.display(),
+            stored.display()
+        )
+        .into());
+    }
+    if !already_linked && metadata(&stored)?.is_some() {
+        return Err(format!("Link destination already exists: {}", stored.display()).into());
+    }
+    let mut config: DotConfig = ron::from_str(&fs::read_to_string(config_path)?)?;
+    let from = format!(
+        "links/{}",
+        name.to_str().ok_or("Directory name is not valid UTF-8")?
+    );
+    register_link(&mut config, &from, &source, &home)?;
+    let updated = ron::ser::to_string_pretty(
+        &config,
+        ron::ser::PrettyConfig::default().struct_names(true),
+    )?;
+
+    if already_linked {
+        info(format!(
+            "Already linked {} -> {}",
+            source.display(),
+            stored.display()
+        ));
+    } else {
+        info(format!(
+            "{} {} -> {} and link back",
+            if dry_run { "Would move" } else { "Moving" },
+            source.display(),
+            stored.display()
+        ));
+    }
+    info(format!(
+        "{} {} for {}",
+        if dry_run { "Would update" } else { "Updating" },
+        config_path.display(),
+        std::env::consts::OS
+    ));
+    if dry_run {
+        return Ok(());
+    }
+    let staged = backup_path(config_path)?;
+    let result = (|| -> Result<()> {
+        use std::io::Write;
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&staged)?;
+        file.write_all(updated.as_bytes())?;
+        file.set_permissions(fs::metadata(config_path)?.permissions())?;
+        file.sync_all()?;
+        drop(file);
+        if already_linked {
+            fs::rename(&staged, config_path)?;
+            return Ok(());
+        }
+        fs::create_dir_all(&links_dir)?;
+        fs::rename(&source, &stored).map_err(|e| {
+            format!(
+                "Cannot move {} into {}: {e}",
+                source.display(),
+                links_dir.display()
+            )
+        })?;
+        if let Err(e) = create_symlink(&stored, &source) {
+            let rollback = fs::rename(&stored, &source);
+            return match rollback {
+            Ok(()) => Err(format!(
+                "Cannot link {}: {e}; moved directory restored",
+                source.display()
+            )
+            .into()),
+            Err(rollback_error) => Err(format!(
+                "Cannot link {}: {e}; also failed to restore directory from {}: {rollback_error}",
+                source.display(),
+                stored.display()
+            )
+            .into()),
+        };
+        }
+        if let Err(e) = fs::rename(&staged, config_path) {
+            fs::remove_file(&source)?;
+            fs::rename(&stored, &source)?;
+            return Err(format!("Cannot update config: {e}; moved directory restored").into());
+        }
+        Ok(())
+    })();
+    if staged.exists() {
+        let _ = fs::remove_file(&staged);
+    }
+    result
+}
+
 fn copy(from: &Path, to: &Path, dry_run: bool) -> Result<()> {
     let source = fs::symlink_metadata(from)?;
     if source.is_symlink() {
@@ -372,6 +646,9 @@ fn run(args: Args) -> Result<()> {
     let root = config_path
         .parent()
         .ok_or("Config has no parent directory")?;
+    if let Some(Commands::Link { directory }) = args.command {
+        return link_directory(&directory, &config_path, args.dry_run);
+    }
     let config: DotConfig = ron::from_str(&fs::read_to_string(&config_path)?)?;
     // Resolve and check all configured sources before running installers or writing files.
     let mut operations = Vec::new();
@@ -464,6 +741,112 @@ mod tests {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn importing_directory_registers_link_and_can_repair_existing_link() {
+        let s = Sandbox::new();
+        let profile = s.path("profile");
+        fs::create_dir(&profile).unwrap();
+        let config = profile.join("dotconfig.ron");
+        let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
+        fs::write(&config, original).unwrap();
+        let source = s.path("app");
+        fs::create_dir(&source).unwrap();
+        fs::write(source.join("settings"), "keep").unwrap();
+        link_directory_in_home(&source, &config, false, &s.0).unwrap();
+        assert_eq!(fs::read_link(&source).unwrap(), profile.join("links/app"));
+        assert_eq!(fs::read_to_string(source.join("settings")).unwrap(), "keep");
+        // Simulate a directory imported by an older installer without registration.
+        fs::write(&config, original).unwrap();
+        link_directory_in_home(&source, &config, false, &s.0).unwrap();
+        link_directory_in_home(&source, &config, false, &s.0).unwrap();
+        let saved: DotConfig = ron::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
+        assert_eq!(saved.symlinks.len(), 1);
+        assert_eq!(saved.symlinks[0].from, "links/app");
+        assert_eq!(
+            PathBuf::from(format_location(&saved.symlinks[0]).unwrap()),
+            dirs::home_dir().unwrap().join("app")
+        );
+        if let OsOrString::Os {
+            macos,
+            linux,
+            windows,
+        } = &saved.symlinks[0].to
+        {
+            assert_eq!(macos.is_empty(), !cfg!(target_os = "macos"));
+            assert_eq!(linux.is_empty(), !cfg!(target_os = "linux"));
+            assert!(windows.is_empty());
+        } else {
+            panic!("Imported links must be platform-specific");
+        }
+    }
+
+    #[test]
+    fn importing_dry_run_and_invalid_config_leave_directory_untouched() {
+        let s = Sandbox::new();
+        let config = s.path("dotconfig.ron");
+        let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
+        fs::write(&config, original).unwrap();
+        let source = s.path("app");
+        fs::create_dir(&source).unwrap();
+        link_directory_in_home(&source, &config, true, &s.0).unwrap();
+        assert!(!s.path("links").exists());
+        assert_eq!(fs::read_to_string(&config).unwrap(), original);
+        fs::write(&config, "invalid config").unwrap();
+        assert!(link_directory_in_home(&source, &config, false, &s.0).is_err());
+        assert!(fs::symlink_metadata(source).unwrap().is_dir());
+        assert!(!s.path("links").exists());
+    }
+
+    #[test]
+    fn destinations_use_the_most_specific_directory_placeholder() {
+        let s = Sandbox::new();
+        let bases = [
+            ("%HOME%", Some(s.0.clone())),
+            ("%CONFIG%", Some(s.path(".config"))),
+            ("%DATA%", Some(s.path(".local/share"))),
+        ];
+        for (relative, expected) in [
+            ("src/test", "%HOME%/src/test"),
+            (".config/test", "%CONFIG%/test"),
+            (".config", "%CONFIG%"),
+            (".config-other/test", "%HOME%/.config-other/test"),
+            (".local/share/test", "%DATA%/test"),
+        ] {
+            assert_eq!(
+                destination_with_bases(&s.path(relative), &bases).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn importing_rejects_home_itself_and_paths_outside_home_without_changes() {
+        let s = Sandbox::new();
+        let home = s.path("home");
+        let outside = s.path("outside");
+        fs::create_dir(&home).unwrap();
+        fs::create_dir(&outside).unwrap();
+        let config = home.join("dotconfig.ron");
+        let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
+        fs::write(&config, original).unwrap();
+        for source in [&home, &outside, &home.join("../outside")] {
+            assert!(link_directory_in_home(source, &config, false, &home).is_err());
+        }
+        #[cfg(unix)]
+        {
+            create_symlink(&outside, &home.join("escape")).unwrap();
+            fs::create_dir(outside.join("app")).unwrap();
+            assert!(
+                link_directory_in_home(&home.join("escape/app"), &config, false, &home).is_err()
+            );
+            assert!(outside.join("app").is_dir());
+        }
+        assert_eq!(fs::read_to_string(config).unwrap(), original);
+        assert!(outside.is_dir());
+        assert!(!home.join("links").exists());
     }
 
     #[test]
@@ -602,6 +985,7 @@ mod tests {
         run(Args {
             config,
             dry_run: false,
+            command: None,
         })
         .unwrap();
 
@@ -630,6 +1014,7 @@ mod tests {
         let error = run(Args {
             config,
             dry_run: false,
+            command: None,
         })
         .unwrap_err();
 
@@ -651,6 +1036,7 @@ mod tests {
         let error = run(Args {
             config,
             dry_run: false,
+            command: None,
         })
         .unwrap_err();
         assert!(error.to_string().contains("Setup incomplete"));
