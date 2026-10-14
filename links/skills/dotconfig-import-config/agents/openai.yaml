@@ -1,4 +1,0 @@
-interface:
-  display_name: "Import Dotconfig Settings"
-  short_description: "Import app settings with persistent platform links"
-  default_prompt: "Use $dotconfig-import-config to add this application configuration to my dotfiles."

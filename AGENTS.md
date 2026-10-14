@@ -28,11 +28,11 @@ For import changes, maintain dry-run behavior and rollback if symlink creation o
 
 The binary embeds its default `dotconfig.ron` path from the build repository. Moving the binary is supported; moving the repository requires rebuilding or `--config`. Config contents remain on disk. Normal setup also applies the optional `git_aliases` configuration to global Git settings; the single-directory `link` operation does not run full setup.
 
-## Codex Skills
+## Agent Skills
 
 - `links/skills/dotconfig-import-config/SKILL.md` covers importing application settings, including Noctalia's GUI export workflow.
 - `links/skills/dotconfig-maintenance/SKILL.md` covers changes to the Rust installer, CLI, RON schema, and build behavior.
-- The whole `links/skills/` directory is linked to `%HOME%/.codex/skills` on Linux and macOS by `dotconfig.ron`, making its skills globally discoverable. Edit the repository sources. Generated built-in skills under `links/skills/.system/` stay local and are excluded from Git tracking.
+- `links/skills/` is linked to `%HOME%/.codex/skills` on Linux and macOS by `dotconfig.ron`; Hermes skill copies are installed under `$HERMES_HOME/skills/`. Edit repository sources and refresh installed Hermes copies when changing these skills. Generated built-in skills under `links/skills/.system/` stay local and are excluded from Git tracking.
 
 ## Style and Naming
 
