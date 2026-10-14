@@ -60,6 +60,14 @@ DotConfig(
                 windows: "",
             ),
         ),
+        Location(
+            from: "links/noctalia",
+            to: Os(
+                macos: "",
+                linux: "%CONFIG%/noctalia",
+                windows: "",
+            ),
+        ),
     ],
     copies: [
         Location(
