@@ -1,51 +1,40 @@
 DotConfig(
-    dependencies: [
-        Cargo(name: "starship"),
-        Cargo(name: "exa", windows: false),
-        Cargo(name: "ripgrep"),
-        Cargo(name: "ru"),
-        Cargo(name: "cargo-update"),
-        Bash(name: "codex", command: "curl -fsSL https://chatgpt.com/codex/install.sh | sh", binary: Some("codex")),
-        Bash(name: "bun", command: "curl -fsSL https://bun.sh/install | bash", binary: Some("bun")),
-        Bash(name: "vite-plus", command: "curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=no VP_PNPM_MANAGER=yes bash", binary: Some("vp")),
-        Bash(name: "oh-my-zsh", command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash", directory: Some("%HOME%/.oh-my-zsh")),
-    ],
     symlinks: [
         Location(
             from: "links/ZSH/zshrc",
             to: Os(
                 macos: "%HOME%/.zshrc",
                 linux: "%HOME%/.zshrc",
-                windows: ""
-            )
+                windows: "",
+            ),
         ),
         Location(
             from: "links/.ideavimrc",
-            to: String("%HOME%/.ideavimrc")
+            to: String("%HOME%/.ideavimrc"),
         ),
         Location(
             from: "links/zed",
             to: Os(
                 macos: "%UNIX_CONFIG%/zed",
                 linux: "%CONFIG%/zed",
-                windows: "%DATA%/Zed"
-            )
+                windows: "%DATA%/Zed",
+            ),
         ),
         Location(
             from: "links/ghostty",
             to: Os(
                 macos: "%CONFIG%/com.mitchellh.ghostty",
                 linux: "%UNIX_CONFIG%/ghostty",
-                windows: ""
-            )
+                windows: "",
+            ),
         ),
         Location(
             from: "links/nvim",
             to: Os(
                 macos: "%UNIX_CONFIG%/nvim",
                 linux: "%CONFIG%/nvim",
-                windows: "%DATA_LOCAL%/nvim"
-            )
+                windows: "%DATA_LOCAL%/nvim",
+            ),
         ),
         Location(
             from: "links/Sublime/User",
@@ -53,16 +42,24 @@ DotConfig(
                 macos: "%HOME%/Library/Application Support/Sublime Text/Packages/User",
                 linux: "",
                 windows: "",
-            )
+            ),
         ),
         Location(
             from: "links/starship/starship.toml",
             to: Os(
                 macos: "%UNIX_CONFIG%/starship.toml",
                 linux: "%CONFIG%/starship.toml",
-                windows: "%HOME%/starship.toml"
+                windows: "%HOME%/starship.toml",
             ),
-        )
+        ),
+        Location(
+            from: "links/hypr",
+            to: Os(
+                macos: "",
+                linux: "%CONFIG%/hypr",
+                windows: "",
+            ),
+        ),
     ],
     copies: [
         Location(
@@ -70,8 +67,8 @@ DotConfig(
             to: Os(
                 macos: "",
                 linux: "",
-                windows: "%DOCUMENTS%/Powershell"
-            )
+                windows: "%DOCUMENTS%/Powershell",
+            ),
         ),
         Location(
             from: "links/fonts",
@@ -79,8 +76,59 @@ DotConfig(
                 macos: "%HOME%/Library/Fonts",
                 linux: "%HOME%/.local/share/fonts",
                 windows: "%DATA_LOCAL%/Microsoft/Windows/Fonts",
-            )
-        )
+            ),
+        ),
+    ],
+    dependencies: [
+        Cargo(
+            name: "starship",
+            git: None,
+            windows: true,
+        ),
+        Cargo(
+            name: "exa",
+            git: None,
+            windows: false,
+        ),
+        Cargo(
+            name: "ripgrep",
+            git: None,
+            windows: true,
+        ),
+        Cargo(
+            name: "ru",
+            git: None,
+            windows: true,
+        ),
+        Cargo(
+            name: "cargo-update",
+            git: None,
+            windows: true,
+        ),
+        Bash(
+            name: "codex",
+            command: "curl -fsSL https://chatgpt.com/codex/install.sh | sh",
+            binary: Some("codex"),
+            directory: None,
+        ),
+        Bash(
+            name: "bun",
+            command: "curl -fsSL https://bun.sh/install | bash",
+            binary: Some("bun"),
+            directory: None,
+        ),
+        Bash(
+            name: "vite-plus",
+            command: "curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=no VP_PNPM_MANAGER=yes bash",
+            binary: Some("vp"),
+            directory: None,
+        ),
+        Bash(
+            name: "oh-my-zsh",
+            command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash",
+            binary: None,
+            directory: Some("%HOME%/.oh-my-zsh"),
+        ),
     ],
     git_aliases: [
         GitAlias(
