@@ -46,6 +46,10 @@ comments are not preserved. Use `--dry-run` to preview without changing files.
 Name or destination conflicts are rejected. Rerunning the command on an existing
 symlink into `links/` registers it without moving its contents again.
 
+Normal setup also configures the global Git aliases `st` (`status`), `co`
+(`checkout`), and `ci` (`commit`) from `dotconfig.ron`. Existing values for
+those alias names are updated; `--dry-run` previews the `git config` commands.
+
 The optional `Brewfile` lists additional macOS tools and can be applied with
 `brew bundle`. Dotconfig installs its own configured dependencies on each run.
 

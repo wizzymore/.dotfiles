@@ -81,5 +81,19 @@ DotConfig(
                 windows: "%DATA_LOCAL%/Microsoft/Windows/Fonts",
             )
         )
-    ]
+    ],
+    git_aliases: [
+        GitAlias(
+            name: "st",
+            command: "status",
+        ),
+        GitAlias(
+            name: "co",
+            command: "checkout",
+        ),
+        GitAlias(
+            name: "ci",
+            command: "commit",
+        ),
+    ],
 )

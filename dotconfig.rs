@@ -71,6 +71,14 @@ struct DotConfig {
     symlinks: Vec<Location>,
     copies: Vec<Location>,
     dependencies: Vec<Dependency>,
+    #[serde(default)]
+    git_aliases: Vec<GitAlias>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct GitAlias {
+    name: String,
+    command: String,
 }
 
 #[derive(Debug, Parser)]
@@ -679,6 +687,21 @@ fn run(args: Args) -> Result<()> {
     let mut failures = 0;
     for dep in config.dependencies {
         if let Err(e) = install_dependency(dep, args.dry_run) {
+            error(e.to_string());
+            failures += 1;
+        }
+    }
+    for alias in config.git_aliases {
+        let key = format!("alias.{}", alias.name);
+        if let Err(e) = run_command(
+            Command::new("git")
+                .arg("config")
+                .arg("--global")
+                .arg("--replace-all")
+                .arg(key)
+                .arg(alias.command),
+            args.dry_run,
+        ) {
             error(e.to_string());
             failures += 1;
         }
