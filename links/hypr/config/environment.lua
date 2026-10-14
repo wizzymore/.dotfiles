@@ -2,6 +2,8 @@
 -- if you use UWSM, define your variables in ~/.config/uwsm/env
 -- if you don't use UWSM, define your variables here (e.g. hl.env("QT_QPA_PLATFORM", "wayland"))
 
+hl.env("BROWSER", BROWSER)
+
 -- if you have an NVIDIA GPU uncomment the following lines:
 
 -- hl.env("GBM_BACKEND", "nvidia-drm") -- force GBM as a backend
