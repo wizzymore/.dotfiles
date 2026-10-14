@@ -9,9 +9,12 @@ some configurations, including Sublime Text, currently target macOS only.
 Install Rust with support for edition 2024, then run:
 
 ```sh
-cargo build --locked
-./target/debug/dotconfig --dry-run
+make install
+./bin/dotconfig --dry-run
 ```
+
+`make install` builds the release binary, copies it to `bin/dotconfig`, and
+cleans Cargo build output.
 
 Dry-run lists dependency commands, links, copies, and backups without executing
 installers or changing files. It checks configuration paths, but cannot predict
@@ -20,7 +23,7 @@ network failures or every write permission error.
 To apply the configuration:
 
 ```sh
-./target/debug/dotconfig
+make
 ```
 
 The default config path is embedded at build time and points to this repository's
@@ -29,13 +32,13 @@ directory without setting an environment variable. The repository must remain
 at its original location; rebuild or use `--config /path/to/dotconfig.ron` if you
 move it. The config contents are read from disk on every run.
 Source paths are relative to the configuration file. Missing sources are errors;
-the installer does not import existing machine configuration into the repository.
+normal setup does not import existing machine configuration; use `link` below.
 
 To move one local directory into this repository's `links/` directory and
 symlink it back to its original location, run:
 
 ```sh
-./target/debug/dotconfig link /path/to/directory
+./bin/dotconfig link /path/to/directory
 ```
 
 The directory's existing name is used under `links/`. The command also updates
