@@ -60,6 +60,13 @@ those alias names are updated; `--dry-run` previews the `git config` commands.
 The optional `Brewfile` lists additional macOS tools and can be applied with
 `brew bundle`. Dotconfig installs its own configured dependencies on each run.
 
+## Codex skills
+
+Normal setup links the entire `links/skills/` directory to `~/.codex/skills/`
+on Linux and macOS. It contains the reusable `dotconfig-import-config` and
+`dotconfig-maintenance` skills. Edit or add skills in the repository directory.
+Codex's generated `.system/` skills stay local and are excluded from Git tracking.
+
 ## Backups and recovery
 
 Conflicting destinations are renamed beside the original path, for example

@@ -68,6 +68,14 @@ DotConfig(
                 windows: "",
             ),
         ),
+        Location(
+            from: "links/skills",
+            to: Os(
+                macos: "%HOME%/.codex/skills",
+                linux: "%HOME%/.codex/skills",
+                windows: "",
+            ),
+        ),
     ],
     copies: [
         Location(

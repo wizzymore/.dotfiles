@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintain Dotconfig"
+  short_description: "Maintain the Rust installer and RON configuration"
+  default_prompt: "Use $dotconfig-maintenance to implement this installer change and preserve existing configuration behavior."
