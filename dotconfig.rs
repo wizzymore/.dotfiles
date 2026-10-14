@@ -8,6 +8,8 @@ use std::{
     process::{Command, ExitCode, Stdio},
 };
 
+const DEFAULT_CONFIG: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/dotconfig.ron");
+
 #[derive(Debug, Deserialize, Serialize)]
 enum OsOrString {
     Os {
@@ -88,8 +90,8 @@ struct GitAlias {
     after_help = "Existing configurations are backed up beside their destinations."
 )]
 struct Args {
-    /// Load configuration from this RON file.
-    #[arg(long, value_name = "PATH", default_value = "dotconfig.ron")]
+    /// Load configuration from this RON file (defaults to the build repository).
+    #[arg(long, value_name = "PATH", default_value = DEFAULT_CONFIG)]
     config: PathBuf,
 
     /// Preview actions without installing dependencies or changing files.
@@ -977,7 +979,8 @@ mod tests {
     #[test]
     fn cli_parses_config_and_dry_run_options() {
         let defaults = Args::try_parse_from(["dotconfig"]).unwrap();
-        assert_eq!(defaults.config, PathBuf::from("dotconfig.ron"));
+        assert_eq!(defaults.config, PathBuf::from(DEFAULT_CONFIG));
+        assert!(defaults.config.is_absolute());
         assert!(!defaults.dry_run);
 
         let args =

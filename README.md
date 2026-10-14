@@ -23,7 +23,11 @@ To apply the configuration:
 ./target/debug/dotconfig
 ```
 
-Use `--config /absolute/path/to/dotconfig.ron` to run from another directory.
+The default config path is embedded at build time and points to this repository's
+`dotconfig.ron`. You can move the binary to `/usr/local/bin` and run it from any
+directory without setting an environment variable. The repository must remain
+at its original location; rebuild or use `--config /path/to/dotconfig.ron` if you
+move it. The config contents are read from disk on every run.
 Source paths are relative to the configuration file. Missing sources are errors;
 the installer does not import existing machine configuration into the repository.
 
