@@ -8,8 +8,11 @@
 -- })
 
 hl.monitor({
-    output    = MONITOR1,
-    mode      = "3840x2160@240",
-    position  = "auto",
-    scale     = "1.25",
+	output = MONITOR1,
+	mode = "3840x2160@240",
+	position = "auto",
+	scale = "1.25",
 })
+
+local gdk_scale = 2
+hl.env("GDK_SCALE", tostring(gdk_scale))
