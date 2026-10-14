@@ -8,11 +8,11 @@
 [
   {
     "context": "Workspace",
-    "bindings": {
-    }
+    "bindings": {},
   },
   {
     "bindings": {
-    }
-  }
+      "ctrl-p": "menu::SelectNext",
+    },
+  },
 ]

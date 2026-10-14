@@ -7,6 +7,51 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "context_servers": {
+    "yerd": {
+      "enabled": true,
+      "remote": false,
+      "command": "yerd mcp",
+      "args": [],
+    },
+  },
+  "agent": {
+    "play_sound_when_agent_done": "always",
+    "default_profile": "write",
+    "tool_permissions": {
+      "tools": {
+        "skill": {
+          "default": "allow",
+        },
+      },
+    },
+    "default_model": {
+      "provider": "openai-subscribed",
+      "model": "gpt-6-luna",
+      "enable_thinking": true,
+      "effort": "medium",
+    },
+    "favorite_models": [
+      {
+        "provider": "openai-subscribed",
+        "model": "gpt-6-luna",
+        "enable_thinking": true,
+        "effort": "medium",
+      },
+      {
+        "provider": "openai-subscribed",
+        "model": "gpt-6.1-sol",
+        "enable_thinking": true,
+        "effort": "low",
+      },
+    ],
+    "model_parameters": [],
+  },
+  "agent_servers": {
+    "codex-acp": {
+      "type": "registry",
+    },
+  },
   "project_panel": {
     "dock": "left",
   },
@@ -19,29 +64,28 @@
   "git_panel": {
     "dock": "left",
   },
-  "agent": {
-    "dock": "right",
-    "enabled": false,
+  "tab_bar": {
+    "show": false,
   },
   "icon_theme": {
     "mode": "light",
     "light": "Base Charmed Icons",
     "dark": "Base Charmed Icons",
   },
+  "theme": {
+    "mode": "system",
+    "light": "Gruvbox Light",
+    "dark": "Gruvbox Dark",
+  },
   "format_on_save": "modifications_if_available",
   "vim_mode": true,
   "ui_font_size": 15,
-  "ui_font_family": "JetBrainsMono Nerd Font Mono",
-  "buffer_font_family": "JetBrainsMono Nerd Font Mono",
-  "buffer_font_weight": 500,
   "ui_font_weight": 500,
+  "ui_font_family": "JetBrainsMono Nerd Font Mono",
   "buffer_font_size": 15,
+  "buffer_font_weight": 500,
+  "buffer_font_family": "JetBrainsMono Nerd Font Mono",
   "buffer_line_height": "standard",
-  "theme": {
-    "mode": "system",
-    "light": "One Light",
-    "dark": "Gruvbox Dark Hard",
-  },
   "inlay_hints": {
     "show_value_hints": true,
     "show_type_hints": true,

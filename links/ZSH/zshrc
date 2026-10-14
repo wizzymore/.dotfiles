@@ -35,14 +35,20 @@ if [[ `uname` == Darwin ]]; then
   export PATH="$VCPKG_ROOT:$PATH"
   export ODIN_ROOT=$HOME/src/odin/Odin
 
+case ":$PATH:" in
+  *":/home/cristianbilu/.local/share/yerd/bin:"*) ;;
+  *) export PATH="/home/cristianbilu/.local/share/yerd/bin:$PATH" ;;
+esac
+export PHPRC="/home/cristianbilu/.local/share/yerd/php-cli.ini"
+else
 # >>> yerd PATH >>>
 case ":$PATH:" in
-  *":$HOME/Library/Application Support/io.yerd.Yerd/bin:"*) ;;
-  *) export PATH="$HOME/Library/Application Support/io.yerd.Yerd/bin:$PATH" ;;
+  *":$HOME/.local/share/yerd/bin:"*) ;;
+  *) export PATH="$HOME/.local/share/yerd/bin:$PATH" ;;
 esac
-export PHPRC="$HOME/Library/Application Support/io.yerd.Yerd/php-cli.ini"
+export PHPRC="$HOME/.local/share/yerd/php-cli.ini"
 # <<< yerd PATH <<<
-else
+
   export ODIN_ROOT=/usr/lib/odin
   export PATH="$HOME/.config/emacs/bin:$PATH"
 fi
@@ -85,3 +91,14 @@ export PATH="$PATH:$HOME/.rvm/bin"
 
 # Vite+ bin (https://viteplus.dev)
 . "$HOME/.config/vite-plus/env"
+
+# >>> Codex installer >>>
+export PATH="/home/cristianbilu/.local/bin:$PATH"
+# <<< Codex installer <<<
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/home/cristianbilu/.lmstudio/bin"
+# End of LM Studio CLI section
+
+# opencode
+export PATH=/home/cristianbilu/.opencode/bin:$PATH
