@@ -14,12 +14,17 @@
   "permissions": [
     {
       "action": "external_directory",
-      "resource": "~/src/*",
+      "resource": "*",
       "effect": "allow"
     },
     {
-      "action": "external_directory",
-      "resource": "~/go/*",
+      "action": "read",
+      "resource": "*.env",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*.env.*",
       "effect": "allow"
     },
     {
