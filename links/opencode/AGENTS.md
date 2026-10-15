@@ -12,5 +12,5 @@ user has explicitly asked for that specific push in the current conversation.
 - Committing, staging, amending, and rebasing are fine without asking. Only
   publishing to a remote requires approval.
 
-The `git push *` shell permission in `opencode.json` already enforces this and
-prompts on its own. Do not try to work around that prompt.
+The `git push *` shell permission in `opencode.jsonc` already enforces this
+and prompts on its own. Do not try to work around that prompt.
