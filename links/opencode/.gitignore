@@ -1,0 +1,12 @@
+# The whole OpenCode config directory is linked into this repository, but these
+# entries are per-device state and must never be committed.
+#
+# service.json holds the background service auth token. Committing it would
+# publish a live credential to every remote this repository is pushed to.
+service.json
+
+# Plugin runtime state written by the quota plugin.
+opencode-quota/
+
+# dotconfig leaves these behind when it replaces a file that is no longer a link.
+*.dotconfig-backup.*

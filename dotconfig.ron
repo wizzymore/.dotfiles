@@ -21,27 +21,11 @@ DotConfig(
             ),
         ),
         Location(
-            from: "links/opencode/opencode.jsonc",
+            from: "links/opencode",
             to: Os(
-                macos: "%UNIX_CONFIG%/opencode/opencode.jsonc",
-                linux: "%CONFIG%/opencode/opencode.jsonc",
-                windows: "%HOME%/.config/opencode/opencode.jsonc",
-            ),
-        ),
-        Location(
-            from: "links/opencode/cli.json",
-            to: Os(
-                macos: "%UNIX_CONFIG%/opencode/cli.json",
-                linux: "%CONFIG%/opencode/cli.json",
-                windows: "%HOME%/.config/opencode/cli.json",
-            ),
-        ),
-        Location(
-            from: "links/opencode/AGENTS.md",
-            to: Os(
-                macos: "%UNIX_CONFIG%/opencode/AGENTS.md",
-                linux: "%CONFIG%/opencode/AGENTS.md",
-                windows: "%HOME%/.config/opencode/AGENTS.md",
+                macos: "%UNIX_CONFIG%/opencode",
+                linux: "%CONFIG%/opencode",
+                windows: "%HOME%/.config/opencode",
             ),
         ),
         Location(
