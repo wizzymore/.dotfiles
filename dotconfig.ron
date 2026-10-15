@@ -134,6 +134,12 @@ DotConfig(
             directory: None,
         ),
         Bash(
+            name: "opencode",
+            command: "curl -fsSL https://opencode.ai/v2/install | bash",
+            binary: Some("opencode"),
+            directory: None,
+        ),
+        Bash(
             name: "vite-plus",
             command: "curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=no VP_PNPM_MANAGER=yes bash",
             binary: Some("vp"),
