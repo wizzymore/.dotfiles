@@ -8,9 +8,12 @@
       }
     }
   },
-  "plugin": [
-    "@slkiser/opencode-quota@latest"
-  ],
+
+  // Disabled. The quota plugin pulls in a third-party package only to surface
+  // usage diagnostics that the TUI already reports, so it is left here commented
+  // rather than deleted to make re-enabling a one-line uncomment.
+  // "plugin": ["@slkiser/opencode-quota@latest"],
+
   "permissions": [
     {
       "action": "external_directory",
