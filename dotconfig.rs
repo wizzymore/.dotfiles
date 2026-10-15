@@ -587,9 +587,35 @@ fn copy(from: &Path, to: &Path, dry_run: bool) -> Result<()> {
     Ok(())
 }
 
+/// Render a command the way it would be typed in a shell, quoting only the
+/// arguments that need it.
+fn format_command(command: &Command) -> String {
+    let needs_quotes = |arg: &str| {
+        arg.is_empty()
+            || arg
+                .chars()
+                .any(|c| c.is_whitespace() || c.is_control() || matches!(c, '\'' | '"' | '\\'))
+    };
+    let mut parts = vec![command.get_program().to_string_lossy().into_owned()];
+    parts.extend(
+        command
+            .get_args()
+            .map(|arg| arg.to_string_lossy())
+            .map(|arg| {
+                if needs_quotes(&arg) {
+                    format!("'{}'", arg.replace('\'', r"'\''"))
+                } else {
+                    arg.into_owned()
+                }
+            }),
+    );
+    parts.join(" ")
+}
+
 fn run_command(command: &mut Command, dry_run: bool) -> Result<()> {
+    let display = format_command(command);
     info(format!(
-        "{} {command:?}",
+        "{} {display}",
         if dry_run { "Would run" } else { "Running" }
     ));
     if dry_run {
@@ -601,7 +627,7 @@ fn run_command(command: &mut Command, dry_run: bool) -> Result<()> {
         .stderr(Stdio::inherit())
         .status()?;
     if !status.success() {
-        return Err(format!("{command:?} failed with {status}").into());
+        return Err(format!("{display} failed with {status}").into());
     }
     Ok(())
 }
@@ -958,6 +984,31 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn commands_are_formatted_without_quoting_every_argument() {
+        let mut cargo = Command::new("cargo");
+        cargo
+            .arg("install")
+            .arg("--git")
+            .arg("https://example.com/x")
+            .arg("y");
+        assert_eq!(
+            format_command(&cargo),
+            "cargo install --git https://example.com/x y"
+        );
+
+        let mut bash = Command::new("bash");
+        bash.arg("-c").arg("curl -fsSL https://example.com | sh");
+        assert_eq!(
+            format_command(&bash),
+            "bash -c 'curl -fsSL https://example.com | sh'"
+        );
+
+        let mut empty = Command::new("env");
+        empty.arg("");
+        assert_eq!(format_command(&empty), "env ''");
     }
 
     #[test]
