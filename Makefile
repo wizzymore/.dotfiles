@@ -4,4 +4,4 @@ all:
 	dotconfig
 
 install:
-	cargo install --path . --locked
+	cargo install --path . --locked && cargo clean --release

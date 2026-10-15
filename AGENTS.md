@@ -6,7 +6,7 @@ This repository manages personal configuration across macOS, Linux, and Windows.
 
 ## Build, Run, and Verify
 
-- `make install` runs `cargo install --path . --locked` to install the release binary into Cargo's bin directory (normally `~/.cargo/bin`); it does not apply configuration.
+- `make install` runs `cargo install --path . --locked` to install the release binary into Cargo's bin directory (normally `~/.cargo/bin`), then runs `cargo clean --release` to remove release build artifacts; it does not apply configuration. Debug artifacts stay in `target/debug` for later test and build runs.
 - `make` runs normal setup using `dotconfig` from `PATH`. Use `dotconfig --dry-run` for a preview and `dotconfig link /path/to/directory` for a single import.
 - `cargo build --locked` builds the installer.
 - `cargo run -- --dry-run` previews the configured actions without applying them.
