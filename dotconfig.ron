@@ -37,6 +37,14 @@ DotConfig(
             ),
         ),
         Location(
+            from: "links/opencode/AGENTS.md",
+            to: Os(
+                macos: "%UNIX_CONFIG%/opencode/AGENTS.md",
+                linux: "%CONFIG%/opencode/AGENTS.md",
+                windows: "%HOME%/.config/opencode/AGENTS.md",
+            ),
+        ),
+        Location(
             from: "links/ghostty",
             to: Os(
                 macos: "%CONFIG%/com.mitchellh.ghostty",

@@ -11,6 +11,13 @@
   "plugin": [
     "@slkiser/opencode-quota@latest"
   ],
+  "permissions": [
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "ask"
+    }
+  ],
   "provider": {
     "openai": {}
   }
