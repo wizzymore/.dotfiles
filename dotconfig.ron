@@ -21,6 +21,14 @@ DotConfig(
             ),
         ),
         Location(
+            from: "links/opencode/opencode.json",
+            to: Os(
+                macos: "%UNIX_CONFIG%/opencode/opencode.json",
+                linux: "%CONFIG%/opencode/opencode.json",
+                windows: "%HOME%/.config/opencode/opencode.json",
+            ),
+        ),
+        Location(
             from: "links/ghostty",
             to: Os(
                 macos: "%CONFIG%/com.mitchellh.ghostty",
