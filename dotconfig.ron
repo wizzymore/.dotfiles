@@ -164,6 +164,12 @@ DotConfig(
             directory: None,
         ),
         Bash(
+            name: "hey",
+            command: "curl -fsSL https://hey.com/install-cli | env HEY_SETUP_AGENT=none HEY_SKIP_SETUP=1 bash",
+            binary: Some("hey"),
+            directory: None,
+        ),
+        Bash(
             name: "vite-plus",
             command: "curl -fsSL https://vite.plus | VP_NODE_MANAGER=yes VP_PM_MANAGER=no VP_PNPM_MANAGER=yes bash",
             binary: Some("vp"),
