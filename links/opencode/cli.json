@@ -10,7 +10,7 @@
     "image_preview": false,
     "tps": true,
     "new_location": "inherit",
-    "permissions": "autoaccept"
+    "permissions": "prompt"
   },
   "theme": {
     "name": "opencode",

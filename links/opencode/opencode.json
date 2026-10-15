@@ -13,6 +13,16 @@
   ],
   "permissions": [
     {
+      "action": "external_directory",
+      "resource": "~/src/*",
+      "effect": "allow"
+    },
+    {
+      "action": "external_directory",
+      "resource": "~/go/*",
+      "effect": "allow"
+    },
+    {
       "action": "shell",
       "resource": "git push *",
       "effect": "ask"
