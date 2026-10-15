@@ -5,6 +5,14 @@
       "yerd": {
         "type": "local",
         "command": ["yerd", "mcp"]
+      },
+      "hermix": {
+        "type": "remote",
+        "url": "https://hermix.test/mcp/hermix"
+      },
+      "hermix-internal": {
+        "type": "remote",
+        "url": "https://hermix.test/mcp/hermix-internal"
       }
     }
   },

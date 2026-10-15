@@ -38,6 +38,7 @@
     "copy": "select"
   },
   "debug": {
-    "devtools": false
+    "devtools": true,
+    "turn_tokens": false
   }
 }
