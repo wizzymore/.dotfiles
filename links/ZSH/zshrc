@@ -36,10 +36,10 @@ if [[ `uname` == Darwin ]]; then
   export ODIN_ROOT=$HOME/src/odin/Odin
 
 case ":$PATH:" in
-  *":/home/cristianbilu/.local/share/yerd/bin:"*) ;;
-  *) export PATH="/home/cristianbilu/.local/share/yerd/bin:$PATH" ;;
+  *":$HOME/.local/share/yerd/bin:"*) ;;
+  *) export PATH="$HOME/.local/share/yerd/bin:$PATH" ;;
 esac
-export PHPRC="/home/cristianbilu/.local/share/yerd/php-cli.ini"
+export PHPRC="$HOME/.local/share/yerd/php-cli.ini"
 else
 # >>> yerd PATH >>>
 case ":$PATH:" in
@@ -93,12 +93,12 @@ export PATH="$PATH:$HOME/.rvm/bin"
 . "$HOME/.config/vite-plus/env"
 
 # >>> Codex installer >>>
-export PATH="/home/cristianbilu/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 # <<< Codex installer <<<
 
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/cristianbilu/.lmstudio/bin"
+export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
 # opencode
-export PATH=/home/cristianbilu/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"

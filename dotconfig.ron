@@ -135,7 +135,7 @@ DotConfig(
         ),
         Bash(
             name: "opencode",
-            command: "curl -fsSL https://opencode.ai/v2/install | bash",
+            command: "curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path",
             binary: Some("opencode"),
             directory: None,
         ),
