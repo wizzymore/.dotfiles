@@ -21,6 +21,14 @@ DotConfig(
             ),
         ),
         Location(
+            from: "links/opencode",
+            to: Os(
+                macos: "%UNIX_CONFIG%/opencode",
+                linux: "%CONFIG%/opencode",
+                windows: "%HOME%/.config/opencode",
+            ),
+        ),
+        Location(
             from: "links/ghostty",
             to: Os(
                 macos: "%UNIX_CONFIG%/ghostty",
@@ -131,6 +139,12 @@ DotConfig(
             name: "bun",
             command: "curl -fsSL https://bun.sh/install | bash",
             binary: Some("bun"),
+            directory: None,
+        ),
+        Bash(
+            name: "opencode",
+            command: "curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path",
+            binary: Some("opencode"),
             directory: None,
         ),
         Bash(

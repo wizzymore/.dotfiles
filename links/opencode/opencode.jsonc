@@ -1,0 +1,50 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "yerd": {
+        "type": "local",
+        "command": ["yerd", "mcp"]
+      },
+      "hermix": {
+        "type": "remote",
+        "url": "https://hermix.test/mcp/hermix"
+      },
+      "hermix-internal": {
+        "type": "remote",
+        "url": "https://hermix.test/mcp/hermix-internal"
+      }
+    }
+  },
+
+  // Disabled. The quota plugin pulls in a third-party package only to surface
+  // usage diagnostics that the TUI already reports, so it is left here commented
+  // rather than deleted to make re-enabling a one-line uncomment.
+  // "plugin": ["@slkiser/opencode-quota@latest"],
+
+  "permissions": [
+    {
+      "action": "external_directory",
+      "resource": "*",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*.env",
+      "effect": "allow"
+    },
+    {
+      "action": "read",
+      "resource": "*.env.*",
+      "effect": "allow"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *",
+      "effect": "ask"
+    }
+  ],
+  "provider": {
+    "openai": {}
+  }
+}
