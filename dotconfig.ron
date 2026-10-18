@@ -48,7 +48,7 @@ DotConfig(
             from: "links/Sublime/User",
             to: Os(
                 macos: "%HOME%/Library/Application Support/Sublime Text/Packages/User",
-                linux: "",
+                linux: "%CONFIG%/sublime-text/Packages/User",
                 windows: "",
             ),
         ),

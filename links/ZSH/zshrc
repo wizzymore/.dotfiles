@@ -64,6 +64,9 @@ alias ls="exa"
 alias la="ls -la"
 alias grep="rg"
 alias ta="tmux a"
+alias t="tmux"
+alias c="codex"
+alias cs="codex sessions"
 
 TIMEFMT='%J   %U  user %S system %P cpu %*E total'$'\n'\
 'avg shared (code):         %X KB'$'\n'\

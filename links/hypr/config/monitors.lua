@@ -14,5 +14,5 @@ hl.monitor({
 	scale = "1.25",
 })
 
-local gdk_scale = 2
+local gdk_scale = 1.5
 hl.env("GDK_SCALE", tostring(gdk_scale))

@@ -25,4 +25,7 @@
 		"SideBarTools",
 		"Svelte",
 	],
+	"in_process_packages":
+	[
+	],
 }

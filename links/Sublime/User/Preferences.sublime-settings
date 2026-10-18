@@ -34,6 +34,9 @@
 /*"MarkdownPreview",*/
 /*"Package Control",*/
 /*"A File Icon",*/
+/*"A File Icon",*/
+/*"Laravel Blade",*/
+/*"Package Control",*/
 	], // Enable the Vintage package, vim emulation
 	// Vintage settings
 	"vintage_use_clipboard": true,
@@ -42,7 +45,7 @@
 	"goto_anything_exclude_gitignore": true,
 	"index_exclude_gitignore": false,
 	"index_files": true,
-	"font_size": 15,
+	"font_size": 12,
 	"show_encoding": true,
 	"hardware_acceleration": "opengl",
 	"hide_new_tab_button": true,
