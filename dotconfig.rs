@@ -107,8 +107,8 @@ struct Args {
 enum Commands {
     /// Move a local directory into links/ and link it back to its original path.
     Link {
-        /// Directory to move and link.
-        directory: PathBuf,
+        /// Path to move and link.
+        path: PathBuf,
     },
 }
 
@@ -377,34 +377,25 @@ fn register_link(
     Ok(())
 }
 
-fn link_directory(directory: &Path, config_path: &Path, dry_run: bool) -> Result<()> {
+fn link_path(path: &Path, config_path: &Path, dry_run: bool) -> Result<()> {
     let home = dirs::home_dir().ok_or("Cannot resolve home directory")?;
-    link_directory_in_home(directory, config_path, dry_run, &home)
+    link_path_in_home(path, config_path, dry_run, &home)
 }
 
-fn link_directory_in_home(
-    directory: &Path,
-    config_path: &Path,
-    dry_run: bool,
-    home: &Path,
-) -> Result<()> {
+fn link_path_in_home(path: &Path, config_path: &Path, dry_run: bool, home: &Path) -> Result<()> {
     let home = fs::canonicalize(home)?;
     let root = config_path
         .parent()
         .ok_or("Config has no parent directory")?;
     let links_dir = root.join("links");
-    let directory = if directory.is_absolute() {
-        directory.to_owned()
+    let path = if path.is_absolute() {
+        path.to_owned()
     } else {
-        std::env::current_dir()?.join(directory)
+        std::env::current_dir()?.join(path)
     };
-    let directory: PathBuf = directory.components().collect();
-    let parent = fs::canonicalize(directory.parent().ok_or("Cannot link a filesystem root")?)?;
-    let source = parent.join(
-        directory
-            .file_name()
-            .ok_or("Cannot link a filesystem root")?,
-    );
+    let path: PathBuf = path.components().collect();
+    let parent = fs::canonicalize(path.parent().ok_or("Cannot link a filesystem root")?)?;
+    let source = parent.join(path.file_name().ok_or("Cannot link a filesystem root")?);
     if source == home || !source.starts_with(&home) {
         return Err(format!(
             "Only directories inside your home directory may be linked: {}",
@@ -412,7 +403,7 @@ fn link_directory_in_home(
         )
         .into());
     }
-    let input_meta = fs::symlink_metadata(&directory)
+    let input_meta = fs::symlink_metadata(&source)
         .map_err(|e| format!("Cannot inspect directory {}: {e}", source.display()))?;
     let name = source.file_name().ok_or("Cannot link a filesystem root")?;
     let stored = links_dir.join(name);
@@ -682,8 +673,8 @@ fn run(args: Args) -> Result<()> {
     let root = config_path
         .parent()
         .ok_or("Config has no parent directory")?;
-    if let Some(Commands::Link { directory }) = args.command {
-        return link_directory(&directory, &config_path, args.dry_run);
+    if let Some(Commands::Link { path }) = args.command {
+        return link_path(&path, &config_path, args.dry_run);
     }
     let config: DotConfig = ron::from_str(&fs::read_to_string(&config_path)?)?;
     // Resolve and check all configured sources before running installers or writing files.
@@ -806,13 +797,13 @@ mod tests {
         let source = s.path("app");
         fs::create_dir(&source).unwrap();
         fs::write(source.join("settings"), "keep").unwrap();
-        link_directory_in_home(&source, &config, false, &s.0).unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
         assert_eq!(fs::read_link(&source).unwrap(), profile.join("links/app"));
         assert_eq!(fs::read_to_string(source.join("settings")).unwrap(), "keep");
         // Simulate a directory imported by an older installer without registration.
         fs::write(&config, original).unwrap();
-        link_directory_in_home(&source, &config, false, &s.0).unwrap();
-        link_directory_in_home(&source, &config, false, &s.0).unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
         let saved: DotConfig = ron::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
         assert_eq!(saved.symlinks.len(), 1);
         assert_eq!(saved.symlinks[0].from, "links/app");
@@ -842,11 +833,11 @@ mod tests {
         fs::write(&config, original).unwrap();
         let source = s.path("app");
         fs::create_dir(&source).unwrap();
-        link_directory_in_home(&source, &config, true, &s.0).unwrap();
+        link_path_in_home(&source, &config, true, &s.0).unwrap();
         assert!(!s.path("links").exists());
         assert_eq!(fs::read_to_string(&config).unwrap(), original);
         fs::write(&config, "invalid config").unwrap();
-        assert!(link_directory_in_home(&source, &config, false, &s.0).is_err());
+        assert!(link_path_in_home(&source, &config, false, &s.0).is_err());
         assert!(fs::symlink_metadata(source).unwrap().is_dir());
         assert!(!s.path("links").exists());
     }
@@ -884,15 +875,13 @@ mod tests {
         let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
         fs::write(&config, original).unwrap();
         for source in [&home, &outside, &home.join("../outside")] {
-            assert!(link_directory_in_home(source, &config, false, &home).is_err());
+            assert!(link_path_in_home(source, &config, false, &home).is_err());
         }
         #[cfg(unix)]
         {
             create_symlink(&outside, &home.join("escape")).unwrap();
             fs::create_dir(outside.join("app")).unwrap();
-            assert!(
-                link_directory_in_home(&home.join("escape/app"), &config, false, &home).is_err()
-            );
+            assert!(link_path_in_home(&home.join("escape/app"), &config, false, &home).is_err());
             assert!(outside.join("app").is_dir());
         }
         assert_eq!(fs::read_to_string(config).unwrap(), original);
