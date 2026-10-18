@@ -105,9 +105,9 @@ struct Args {
 
 #[derive(Debug, clap::Subcommand)]
 enum Commands {
-    /// Move a local directory into links/ and link it back to its original path.
+    /// Move a local directory or file into links/ and link it back to its original path.
     Link {
-        /// Path to move and link.
+        /// Directory or file to move and link.
         path: PathBuf,
     },
 }
@@ -293,10 +293,8 @@ fn destination_with_bases(path: &Path, bases: &[(&str, Option<PathBuf>)]) -> Res
             }
         }
     }
-    let (token, relative, _) = best.ok_or("Directory has no supported path placeholder")?;
-    let relative = relative
-        .to_str()
-        .ok_or("Directory path is not valid UTF-8")?;
+    let (token, relative, _) = best.ok_or("Path has no supported path placeholder")?;
+    let relative = relative.to_str().ok_or("Path is not valid UTF-8")?;
     if relative.is_empty() {
         return Ok(token.to_owned());
     }
@@ -388,23 +386,27 @@ fn link_path_in_home(path: &Path, config_path: &Path, dry_run: bool, home: &Path
         .parent()
         .ok_or("Config has no parent directory")?;
     let links_dir = root.join("links");
-    let path = if path.is_absolute() {
+    let requested = if path.is_absolute() {
         path.to_owned()
     } else {
         std::env::current_dir()?.join(path)
     };
-    let path: PathBuf = path.components().collect();
-    let parent = fs::canonicalize(path.parent().ok_or("Cannot link a filesystem root")?)?;
-    let source = parent.join(path.file_name().ok_or("Cannot link a filesystem root")?);
+    let requested: PathBuf = requested.components().collect();
+    let parent = fs::canonicalize(requested.parent().ok_or("Cannot link a filesystem root")?)?;
+    let source = parent.join(
+        requested
+            .file_name()
+            .ok_or("Cannot link a filesystem root")?,
+    );
     if source == home || !source.starts_with(&home) {
         return Err(format!(
-            "Only directories inside your home directory may be linked: {}",
+            "Only files and directories inside your home directory may be linked: {}",
             source.display()
         )
         .into());
     }
     let input_meta = fs::symlink_metadata(&source)
-        .map_err(|e| format!("Cannot inspect directory {}: {e}", source.display()))?;
+        .map_err(|e| format!("Cannot inspect {}: {e}", source.display()))?;
     let name = source.file_name().ok_or("Cannot link a filesystem root")?;
     let stored = links_dir.join(name);
     if source.starts_with(&links_dir) || links_dir.starts_with(&source) {
@@ -414,13 +416,23 @@ fn link_path_in_home(path: &Path, config_path: &Path, dry_run: bool, home: &Path
         )
         .into());
     }
+    // A file or directory that already resolves into links/ only needs its
+    // entry registered; its contents stay where they are.
     let already_linked = input_meta.is_symlink()
         && fs::canonicalize(&source)
             .ok()
-            .is_some_and(|target| target == stored && target.is_dir());
-    if !already_linked && (!input_meta.is_dir() || input_meta.is_symlink()) {
+            .is_some_and(|target| target == stored);
+    if !already_linked && input_meta.is_symlink() {
         return Err(format!(
-            "{} is not a directory or a link to {}",
+            "{} is a link but does not point into {}",
+            source.display(),
+            stored.display()
+        )
+        .into());
+    }
+    if !already_linked && !input_meta.is_file() && !input_meta.is_dir() {
+        return Err(format!(
+            "{} is not a file, directory, or link to {}",
             source.display(),
             stored.display()
         )
@@ -430,10 +442,7 @@ fn link_path_in_home(path: &Path, config_path: &Path, dry_run: bool, home: &Path
         return Err(format!("Link destination already exists: {}", stored.display()).into());
     }
     let mut config: DotConfig = ron::from_str(&fs::read_to_string(config_path)?)?;
-    let from = format!(
-        "links/{}",
-        name.to_str().ok_or("Directory name is not valid UTF-8")?
-    );
+    let from = format!("links/{}", name.to_str().ok_or("Name is not valid UTF-8")?);
     register_link(&mut config, &from, &source, &home)?;
     let updated = ron::ser::to_string_pretty(
         &config,
@@ -489,23 +498,23 @@ fn link_path_in_home(path: &Path, config_path: &Path, dry_run: bool, home: &Path
         if let Err(e) = create_symlink(&stored, &source) {
             let rollback = fs::rename(&stored, &source);
             return match rollback {
-            Ok(()) => Err(format!(
-                "Cannot link {}: {e}; moved directory restored",
-                source.display()
-            )
-            .into()),
-            Err(rollback_error) => Err(format!(
-                "Cannot link {}: {e}; also failed to restore directory from {}: {rollback_error}",
-                source.display(),
-                stored.display()
-            )
-            .into()),
-        };
+                Ok(()) => Err(format!(
+                    "Cannot link {}: {e}; moved path restored",
+                    source.display()
+                )
+                .into()),
+                Err(rollback_error) => Err(format!(
+                    "Cannot link {}: {e}; also failed to restore path from {}: {rollback_error}",
+                    source.display(),
+                    stored.display()
+                )
+                .into()),
+            };
         }
         if let Err(e) = fs::rename(&staged, config_path) {
             fs::remove_file(&source)?;
             fs::rename(&stored, &source)?;
-            return Err(format!("Cannot update config: {e}; moved directory restored").into());
+            return Err(format!("Cannot update config: {e}; moved path restored").into());
         }
         Ok(())
     })();
@@ -825,6 +834,36 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn importing_file_registers_link_and_can_repair_existing_link() {
+        let s = Sandbox::new();
+        let profile = s.path("profile");
+        fs::create_dir(&profile).unwrap();
+        let config = profile.join("dotconfig.ron");
+        let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
+        fs::write(&config, original).unwrap();
+        let source = s.path(".zshrc");
+        fs::write(&source, "keep").unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
+        assert_eq!(
+            fs::read_link(&source).unwrap(),
+            profile.join("links/.zshrc")
+        );
+        assert_eq!(fs::read_to_string(&source).unwrap(), "keep");
+        // A file imported by an older installer can be registered later.
+        fs::write(&config, original).unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
+        let saved: DotConfig = ron::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
+        assert_eq!(saved.symlinks.len(), 1);
+        assert_eq!(saved.symlinks[0].from, "links/.zshrc");
+        assert_eq!(
+            PathBuf::from(format_location(&saved.symlinks[0]).unwrap()),
+            dirs::home_dir().unwrap().join(".zshrc")
+        );
+    }
+
     #[test]
     fn importing_dry_run_and_invalid_config_leave_directory_untouched() {
         let s = Sandbox::new();
@@ -840,6 +879,49 @@ mod tests {
         assert!(link_path_in_home(&source, &config, false, &s.0).is_err());
         assert!(fs::symlink_metadata(source).unwrap().is_dir());
         assert!(!s.path("links").exists());
+    }
+
+    #[test]
+    fn importing_nested_file_records_full_destination_and_rejects_foreign_symlinks() {
+        let s = Sandbox::new();
+        let config = s.path("dotconfig.ron");
+        let original = "DotConfig(dependencies: [], symlinks: [], copies: [])";
+        fs::write(&config, original).unwrap();
+        fs::create_dir(s.path(".config")).unwrap();
+        let source = s.path(".config/starship.toml");
+        fs::write(&source, "format").unwrap();
+        link_path_in_home(&source, &config, false, &s.0).unwrap();
+        let saved: DotConfig = ron::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
+        assert_eq!(saved.symlinks[0].from, "links/starship.toml");
+        assert_eq!(
+            PathBuf::from(format_location(&saved.symlinks[0]).unwrap()),
+            dirs::home_dir().unwrap().join(".config/starship.toml")
+        );
+        // A second file with the same name cannot reuse the stored entry.
+        fs::create_dir(s.path("other")).unwrap();
+        fs::write(s.path("other/starship.toml"), "other").unwrap();
+        let error =
+            link_path_in_home(&s.path("other/starship.toml"), &config, false, &s.0).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("Link destination already exists")
+        );
+        assert_eq!(
+            fs::read_to_string(s.path("other/starship.toml")).unwrap(),
+            "other"
+        );
+
+        // A symlink pointing outside links/ is not imported.
+        #[cfg(unix)]
+        {
+            let foreign = s.path("foreign");
+            create_symlink(&s.path(".config"), &foreign).unwrap();
+            fs::write(&config, original).unwrap();
+            assert!(link_path_in_home(&foreign, &config, false, &s.0).is_err());
+            assert_eq!(fs::read_to_string(&config).unwrap(), original);
+            assert!(!s.path("links/foreign").exists());
+        }
     }
 
     #[test]

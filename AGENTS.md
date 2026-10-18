@@ -7,7 +7,7 @@ This repository manages personal configuration across macOS, Linux, and Windows.
 ## Build, Run, and Verify
 
 - `make install` runs `cargo install --path . --locked` to install the release binary into Cargo's bin directory (normally `~/.cargo/bin`), then runs `cargo clean --release` to remove release build artifacts; it does not apply configuration. Debug artifacts stay in `target/debug` for later test and build runs.
-- `make` runs normal setup using `dotconfig` from `PATH`. Use `dotconfig --dry-run` for a preview and `dotconfig link /path/to/directory` for a single import.
+- `make` runs normal setup using `dotconfig` from `PATH`. Use `dotconfig --dry-run` for a preview and `dotconfig link /path/to/directory` or `dotconfig link /path/to/file` for a single import.
 - `cargo build --locked` builds the installer.
 - `cargo run -- --dry-run` previews the configured actions without applying them.
 - `cargo run -- --config /path/to/dotconfig.ron --dry-run` previews another configuration; its source paths are relative to that file.
@@ -18,9 +18,9 @@ Review the dry-run output before applying configuration on a machine. Installer 
 
 ## Importing Application Configuration
 
-Use `dotconfig link` to import directories; the executable is named `dotconfig`, even when the user calls it dotlink or dotfiles. The command moves the directory into `links/`, creates its symlink back, and registers it in `dotconfig.ron`. Moving files and making a symlink alone does not complete an import.
+Use `dotconfig link` to import a directory or a single file; the executable is named `dotconfig`, even when the user calls it dotlink or dotfiles. The command moves the path into `links/` under its existing name, creates its symlink back, and registers it in `dotconfig.ron`. Moving files and making a symlink alone does not complete an import.
 
-Only directories below the current user's home are accepted. Resolve parent symlinks to prevent escapes; reject the home directory itself, repository overlaps, and conflicting names or destinations. New entries enable only the current OS and leave other OS destinations empty. Use the deepest matching supported placeholder: `%HOME%/src/test`, `%CONFIG%/test`, or a matching data or documents placeholder. Preserve any existing destinations for other platforms when extending an entry.
+Only files and directories below the current user's home are accepted. Resolve parent symlinks to prevent escapes; reject the home directory itself, repository overlaps, conflicting names or destinations, and symlinks that do not resolve into `links/`. New entries enable only the current OS and leave other OS destinations empty. Use the deepest matching supported placeholder: `%HOME%/src/test`, `%CONFIG%/test`, or a matching data or documents placeholder. Preserve any existing destinations for other platforms when extending an entry.
 
 Check official application documentation and the local installation for config layers, GUI overrides, and state. Capture user settings using the app's supported export when appropriate; preserve runtime state separately. Noctalia's curated config is in `~/.config/noctalia`, while GUI overrides are in `~/.local/state/noctalia/settings.toml`; see `links/noctalia/README.md` for the export workflow.
 

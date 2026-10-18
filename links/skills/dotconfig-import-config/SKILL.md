@@ -32,12 +32,14 @@ Use this procedure to add or repair a managed application configuration. It reli
 
    `terminal(command="dotconfig link /absolute/path/to/app-config")`
 
+   The same command imports a single file, such as `dotconfig link /absolute/path/to/app.conf`; it is stored as `links/app.conf`.
+
    If using another config file, put `--config /path/to/dotconfig.ron` before `link`.
 5. Confirm the import: the original path is a symlink to `links/<name>`, contents are preserved, and RON contains exactly one matching platform entry. Note any app portability warnings and whether later GUI edits need another export.
 
 ## Constraints and Recovery
 
-Imports must remain below the user's home after resolving parent symlinks. Reject the home itself, repository overlaps, and name or destination conflicts. Preserve the source basename. New entries enable only the current OS, leaving other destinations empty; use the deepest supported placeholder (for example `%HOME%/src/test` or `%CONFIG%/test`). Preserve other-platform destinations when extending an existing RON entry. A correct existing symlink can be registered by rerunning `link`.
+Imports of files and directories must remain below the user's home after resolving parent symlinks. Reject the home itself, repository overlaps, name or destination conflicts, and symlinks that do not resolve into `links/`. Preserve the source basename. New entries enable only the current OS, leaving other destinations empty; use the deepest supported placeholder (for example `%HOME%/src/test` or `%CONFIG%/test`). Preserve other-platform destinations when extending an existing RON entry. A correct existing symlink can be registered by rerunning `link`.
 
 Only reset an import when explicitly requested. Verify its symlink target and preserve a recoverable snapshot first; restore the original directory, remove only its RON entry, then rerun `link`. Confirm dry-run changed neither directory nor RON.
 

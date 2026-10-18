@@ -35,16 +35,17 @@ move it. The config contents are read from disk on every run.
 Source paths are relative to the configuration file. Missing sources are errors;
 normal setup does not import existing machine configuration; use `link` below.
 
-To move one local directory into this repository's `links/` directory and
+To move one local directory or file into this repository's `links/` directory and
 symlink it back to its original location, run:
 
 ```sh
 dotconfig link /path/to/directory
+dotconfig link /path/to/file
 ```
 
-The directory's existing name is used under `links/`. The command also updates
+The path's existing name is used under `links/`. The command also updates
 `dotconfig.ron` with a symlink entry for the current OS; other OS destinations
-are left empty for new entries. Only directories below your home directory are
+are left empty for new entries. Only paths below your home directory are
 accepted, including when resolving symlinks in parent directories. The most
 specific supported placeholder is used: for example, `~/src/test` becomes
 `%HOME%/src/test`, and `~/.config/test` becomes `%CONFIG%/test` on Linux.
