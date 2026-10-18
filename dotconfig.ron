@@ -84,6 +84,14 @@ DotConfig(
                 windows: "",
             ),
         ),
+        Location(
+            from: "links/.tmux.conf",
+            to: Os(
+                macos: "%HOME%/.tmux.conf",
+                linux: "%HOME%/.tmux.conf",
+                windows: "",
+            ),
+        ),
     ],
     copies: [
         Location(
@@ -164,6 +172,12 @@ DotConfig(
             command: "curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | RUNZSH=no KEEP_ZSHRC=yes bash",
             binary: None,
             directory: Some("%HOME%/.oh-my-zsh"),
+        ),
+        Bash(
+            name: "tpm",
+            command: "mkdir -p \"$HOME/.tmux/plugins\" && git clone https://github.com/tmux-plugins/tpm \"$HOME/.tmux/plugins/tpm\"",
+            binary: None,
+            directory: Some("%HOME%/.tmux/plugins/tpm"),
         ),
     ],
     git_aliases: [
