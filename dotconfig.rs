@@ -61,11 +61,18 @@ enum Dependency {
     Bash {
         name: String,
         command: String,
-        #[serde(default)]
-        binary: Option<String>,
-        #[serde(default)]
-        directory: Option<String>,
+        check: Check,
     },
+}
+
+/// How a shell dependency decides whether it is already installed. Exactly
+/// one target is named, so a dependency cannot be skipped by accident.
+#[derive(Debug, Deserialize, Serialize)]
+enum Check {
+    /// A program that is already on PATH.
+    Binary(String),
+    /// A path, with supported placeholders, that already exists.
+    Directory(String),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -649,18 +656,16 @@ fn install_dependency(dep: Dependency, dry_run: bool) -> Result<()> {
         Dependency::Bash {
             name,
             command,
-            binary,
-            directory,
+            check,
         } => {
             if cfg!(windows) {
                 return Ok(());
             }
-            let binary_exists = binary.is_some_and(|b| which::which(b).is_ok());
-            let directory_exists = match directory {
-                Some(d) => Path::new(&format_path(d)?).try_exists()?,
-                None => false,
+            let installed = match check {
+                Check::Binary(binary) => which::which(binary).is_ok(),
+                Check::Directory(directory) => Path::new(&format_path(directory)?).try_exists()?,
             };
-            if binary_exists || directory_exists {
+            if installed {
                 info(format!("Dependency {name} already installed, skipping"));
                 return Ok(());
             }
@@ -1057,6 +1062,48 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn shell_dependency_runs_only_when_its_check_target_is_missing() {
+        let s = Sandbox::new();
+        let target = s.path("plugin");
+        let marker = s.path("ran");
+        let marker_path = marker.display().to_string();
+        let bash = |check: Check| Dependency::Bash {
+            name: "plugin".to_owned(),
+            command: format!("touch {marker_path}"),
+            check,
+        };
+
+        // A directory check skips while the path exists, then runs once it is gone.
+        fs::create_dir(&target).unwrap();
+        install_dependency(bash(Check::Directory(target.display().to_string())), false).unwrap();
+        assert!(!marker.exists());
+        fs::remove_dir(&target).unwrap();
+        install_dependency(bash(Check::Directory(target.display().to_string())), false).unwrap();
+        assert!(marker.exists());
+
+        // A binary check uses PATH: an absent name runs, a real one skips.
+        fs::remove_file(&marker).unwrap();
+        install_dependency(
+            bash(Check::Binary("dotconfig-test-absent".to_owned())),
+            false,
+        )
+        .unwrap();
+        assert!(marker.exists());
+
+        fs::remove_file(&marker).unwrap();
+        install_dependency(bash(Check::Binary("sh".to_owned())), false).unwrap();
+        assert!(!marker.exists());
+
+        // Placeholders in a directory check are resolved like any other path.
+        let error =
+            install_dependency(bash(Check::Directory("%UNKNOWN%/plugin".to_owned())), false)
+                .unwrap_err();
+        assert!(error.to_string().contains("Unresolved placeholder"));
+        assert!(!marker.exists());
+    }
+
     #[test]
     fn commands_are_formatted_without_quoting_every_argument() {
         let mut cargo = Command::new("cargo");
@@ -1151,7 +1198,7 @@ mod tests {
         fs::write(
             &config,
             format!(
-                "DotConfig(dependencies: [Bash(name: \"marker\", command: \"touch {}\", binary: None, directory: None)], symlinks: [Location(from: \"source\", to: String({:?})), Location(from: \"source\", to: String({:?}))], copies: [])",
+                "DotConfig(dependencies: [Bash(name: \"marker\", command: \"touch {}\", check: Binary(\"dotconfig-test-absent\"))], symlinks: [Location(from: \"source\", to: String({:?})), Location(from: \"source\", to: String({:?}))], copies: [])",
                 marker.display(),
                 destination.to_string_lossy(),
                 destination.to_string_lossy()
@@ -1177,7 +1224,7 @@ mod tests {
         let config = sandbox.path("dotconfig.ron");
         fs::write(
             &config,
-            "DotConfig(dependencies: [Bash(name: \"failure\", command: \"exit 9\", binary: None, directory: None)], symlinks: [], copies: [])",
+            "DotConfig(dependencies: [Bash(name: \"failure\", command: \"exit 9\", check: Binary(\"dotconfig-test-absent\"))], symlinks: [], copies: [])",
         )
         .unwrap();
 

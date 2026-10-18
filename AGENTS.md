@@ -28,6 +28,8 @@ For import changes, maintain dry-run behavior and rollback if symlink creation o
 
 The binary embeds its default `dotconfig.ron` path from the build repository. Moving the binary is supported; moving the repository requires rebuilding or `--config`. Config contents remain on disk. Normal setup also applies the optional `git_aliases` configuration to global Git settings; the single-directory `link` operation does not run full setup.
 
+Each `Bash` dependency names exactly one `check`, either `check: Binary("name")` for a program on `PATH` or `check: Directory("path")` for a path that may use supported placeholders. The command is skipped when that one target exists. Do not reintroduce parallel optional fields; a single required choice prevents a dependency from being skipped by an unrelated match.
+
 ## Agent Skills
 
 - `links/skills/dotconfig-import-config/SKILL.md` covers importing application settings, including Noctalia's GUI export workflow.

@@ -61,6 +61,10 @@ those alias names are updated; `--dry-run` previews the `git config` commands.
 
 The optional `Brewfile` lists additional macOS tools and can be applied with
 `brew bundle`. Dotconfig installs its own configured dependencies on each run.
+Each shell dependency names the one target that proves it is installed, either
+`check: Binary("codex")` for a program on `PATH` or
+`check: Directory("%HOME%/.oh-my-zsh")` for a path, which may use the supported
+placeholders. The command is skipped when that target exists.
 
 ## Codex skills
 

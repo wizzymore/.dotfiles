@@ -25,13 +25,14 @@ Use this skill for changes or fixes to the Rust installer, CLI, RON schema, or b
 
 ## Behavioral Invariants
 
-- No subcommand runs configured setup; `link <dir>` imports only that directory and records its platform entry.
+- No subcommand runs configured setup; `link <path>` imports only that directory or file and records its platform entry.
 - `--dry-run` makes no filesystem or Git configuration changes and executes no installers.
 - New optional RON fields have deserialization defaults. Serialization retains dependencies, aliases, copies, and unrelated platform mappings.
+- Each `Bash` dependency names exactly one `check`, `Binary("name")` or `Directory("path")`, and is skipped only when that target exists. Keep the single required choice; parallel optional fields let an unrelated match skip an install.
 - Imports stay below home after resolving parent symlinks. New destinations enable only the current OS and use the deepest supported placeholder. Never silently overwrite existing RON mappings, stored names, or destinations.
 - Prepare and validate RON before moving data. Stage it beside the original for atomic replacement, close handles before renaming, and restore moved data if link creation or config commit fails. A correct symlink can be registered without moving it again.
 - The default config path is embedded from `CARGO_MANIFEST_DIR`, while config contents are read from disk. Moving the executable must not change source resolution; `--config` remains an explicit override.
-- Normal setup configures `git_aliases` through argument-based `git config --global` and reports failures. A directory import does not run full setup.
+- Normal setup configures `git_aliases` through argument-based `git config --global` and reports failures. A single import does not run full setup.
 
 ## Testing Guidance
 
