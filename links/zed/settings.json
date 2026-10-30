@@ -15,6 +15,17 @@
       "args": [],
     },
   },
+  "auto_install_extensions": {
+    "0x96f": true,
+    "charmed-icons": true,
+    "git-firefly": true,
+    "html": true,
+    "make": true,
+    "odin": true,
+    "php": true,
+    "toml": true,
+    "vue": true,
+  },
   "agent": {
     "play_sound_when_agent_done": "always",
     "default_profile": "write",
@@ -75,7 +86,7 @@
   "theme": {
     "mode": "system",
     "light": "Gruvbox Light",
-    "dark": "Gruvbox Dark",
+    "dark": "0x96f Theme",
   },
   "format_on_save": "modifications_if_available",
   "vim_mode": true,
