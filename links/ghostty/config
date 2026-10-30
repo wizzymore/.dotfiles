@@ -1,8 +1,14 @@
-font-family = JetBrainsMono Nerd Font
-font-size = 12
-theme = noctalia
+font-family = Departure Mono
+font-size = 14
+theme = 0x96f
 font-thicken = true
-background-opacity = 0.95
+background-opacity = 1
 background-blur = true
 
 mouse-scroll-multiplier = precision:0.3,discrete:1
+
+# Cool Retro CRT
+custom-shader = shaders/cool-retro-term.glsl
+custom-shader-animation = true
+window-padding-x = 16
+window-padding-y = 16
