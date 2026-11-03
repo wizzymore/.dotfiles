@@ -1,0 +1,12 @@
+# The whole Zed config directory is linked into this repository, and Zed writes
+# runtime state (prompt library database, conversations, ...) next to the user
+# config. Ignore everything by default and whitelist only the curated config.
+/*
+
+!/.gitignore
+!/AGENTS.md
+!/settings.json
+!/keymap.json
+!/tasks.json
+!/snippets/
+!/themes/
