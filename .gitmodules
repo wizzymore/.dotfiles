@@ -1,0 +1,3 @@
+[submodule "links/private"]
+	path = links/private
+	url = git@github.com:wizzymore/dotfiles-private.git

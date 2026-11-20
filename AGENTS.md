@@ -2,7 +2,7 @@
 
 ## Project Structure
 
-This repository manages personal configuration across macOS, Linux, and Windows. The Rust installer and its unit tests live in `dotconfig.rs`; `dotconfig.ron` defines dependencies, symlinks, copies, and global Git aliases. `Cargo.toml` and `Cargo.lock` describe the Rust binary. Machine configuration files and assets live under `links/`, grouped by application (for example, `links/nvim/`, `links/Sublime/`, and `links/ZSH/`). `Brewfile` lists optional macOS packages. Do not add downloaded dependencies or generated build output to the repository.
+This repository manages personal configuration across macOS, Linux, and Windows. The Rust installer and its unit tests live in `dotconfig.rs`; `dotconfig.ron` defines dependencies, symlinks, copies, and global Git aliases. `Cargo.toml` and `Cargo.lock` describe the Rust binary. Machine configuration files and assets live under `links/`, grouped by application (for example, `links/nvim/`, `links/Sublime/`, and `links/ZSH/`). Private files (licences, secrets, SSH and AWS config) live in the `links/private` submodule, backed by the private `dotfiles-private` repository; clone with `--recurse-submodules` or run `git submodule update --init` before setup, because missing sources make setup fail. `Brewfile` lists optional macOS packages. Do not add downloaded dependencies or generated build output to the repository.
 
 ## Build, Run, and Verify
 

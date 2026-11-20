@@ -1,6 +1,38 @@
 DotConfig(
     symlinks: [
         Location(
+            from: "links/private/intelephense",
+            to: Os(
+                macos: "%HOME%/intelephense",
+                linux: "",
+                windows: "",
+            ),
+        ),
+        Location(
+            from: "links/private/secrets.zsh",
+            to: Os(
+                macos: "%HOME%/.secrets.zsh",
+                linux: "",
+                windows: "",
+            ),
+        ),
+        Location(
+            from: "links/private/ssh/config",
+            to: Os(
+                macos: "%HOME%/.ssh/config",
+                linux: "",
+                windows: "",
+            ),
+        ),
+        Location(
+            from: "links/private/aws/config",
+            to: Os(
+                macos: "%HOME%/.aws/config",
+                linux: "",
+                windows: "",
+            ),
+        ),
+        Location(
             from: "links/ZSH/zshrc",
             to: Os(
                 macos: "%HOME%/.zshrc",
