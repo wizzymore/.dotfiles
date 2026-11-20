@@ -44,5 +44,6 @@
   "diffs": {
     "view": "split",
     "single": false
-  }
+  },
+  "plugins": ["./herdr-opencode"]
 }
